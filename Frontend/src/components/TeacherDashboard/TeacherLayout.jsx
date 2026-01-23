@@ -3,26 +3,26 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import '../../App.css'
 
-const StudentLayout = ({ children }) => {
+const TeacherLayout = ({ children }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard')
 
-  const menuItems = ['Dashboard', 'Subjects', 'Result']
+  const menuItems = ['Dashboard', 'Overview', 'Attendance', 'Students', 'Teachers', 'Result']
 
   return (
     <motion.div className="dashboard-root">
-      <motion.aside
+      <motion.aside 
         className="sidebar"
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
       >
         <div className="brand">
-          <div className="logo-mark">ST</div>
-          <div className="brand-text">Student Panel</div>
+          <div className="logo-mark">TC</div>
+          <div className="brand-text">Teacher Panel</div>
         </div>
         <nav className="menu">
           {menuItems.map(item => (
-            <Link to={`/student/${item.toLowerCase()}`} key={item} style={{ textDecoration: 'none' }}>
+            <Link to={`/teacher/${item.toLowerCase()}`} key={item} style={{ textDecoration: 'none' }}>
               <motion.div
                 className={`menu-item ${activeMenu === item ? 'active' : ''}`}
                 onClick={() => setActiveMenu(item)}
@@ -35,27 +35,27 @@ const StudentLayout = ({ children }) => {
           ))}
         </nav>
         <motion.div className="invite">
-          <div className="invite-illustration">🎓</div>
-          <motion.button
+          <div className="invite-illustration">📊</div>
+          <motion.button 
             className="invite-btn"
-            onClick={() => alert('Explore resources coming soon!')}
+            onClick={() => alert('Analytics feature coming soon!')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Explore Resources
+            Get Analytics
           </motion.button>
         </motion.div>
       </motion.aside>
 
       <motion.main className="maincol">
-        <motion.header
+        <motion.header 
           className="topbar"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <motion.div className="top-left">
-            <motion.h2
+            <motion.h2 
               className="page-title"
               key={activeMenu}
               initial={{ opacity: 0, x: -20 }}
@@ -64,35 +64,24 @@ const StudentLayout = ({ children }) => {
             >
               {activeMenu}
             </motion.h2>
-            <div className="subtext">Welcome back, Student</div>
+            <div className="subtext">Welcome back, Teacher</div>
           </motion.div>
           <div className="top-right">
-            <motion.div
-              className="notification-icon"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              style={{
-                cursor: 'pointer',
-                background: 'white',
-                padding: '10px',
-                borderRadius: '50%',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#a3aed0'
-              }}
-            >
-              <span style={{ fontSize: '20px' }}>🔔</span>
+            <motion.div className="search">
+              <motion.input 
+                placeholder="Search" 
+                whileFocus={{ borderColor: '#3b82f6', boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)' }}
+                transition={{ duration: 0.2 }}
+              />
             </motion.div>
-            <motion.div
-              className="profile"
+            <motion.div 
+              className="profile" 
               onClick={() => alert('Profile menu')}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <motion.div className="avatar">ST</motion.div>
-              <div className="profile-name">Student Name</div>
+              <motion.div className="avatar">JK</motion.div>
+              <div className="profile-name">Jara Khan</div>
             </motion.div>
           </div>
         </motion.header>
@@ -103,4 +92,4 @@ const StudentLayout = ({ children }) => {
   )
 }
 
-export default StudentLayout
+export default TeacherLayout
