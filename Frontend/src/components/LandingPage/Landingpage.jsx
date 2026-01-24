@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './Landingpage.css'
+import { Link } from 'react-router-dom'
 
 const Landingpage = () => {
   const aboutRef = useRef(null)
@@ -69,7 +70,7 @@ const Landingpage = () => {
             <h2>Student Management System</h2>
             <p>Streamline your educational institution with our comprehensive management solution</p>
             <div className="bttn-cont">
-              <button>Go To Portal</button>
+              <Link to="/login"><button>Go To Portal</button></Link>
             </div>
           </div>
         </div>

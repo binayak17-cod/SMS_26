@@ -1,11 +1,12 @@
 import os
-from pymongo import MongoClient
-from dotenv import load_dotenv
 
-load_dotenv()
-
-MONGO_URI = os.getenv("MONGO_URI")
-
-client = MongoClient(MONGO_URI)
-db = client["ContactDB"]
-contacts_collection = db["contacts"]
+class Config:
+    # MySQL Database Configuration
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "DATABASE_URL",
+        "mysql+pymysql://root:root@localhost:3306/sms_db"
+    )
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = "084c798ae26ad8bb088a191feb8224f772"
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = False
