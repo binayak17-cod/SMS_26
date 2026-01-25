@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/Login.css";
+import "./Login.css";
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -100,60 +100,68 @@ export default function Login() {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2>Login</h2>
-
-        {error && <div className="alert alert-error">{error}</div>}
-
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label htmlFor="id">ID</label>
-            <input
-              id="id"
-              type="text"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              required
-            />
+        <div className="login-left">
+          <div className="login-left-content">
+            <h1>EDUNEXUS</h1>
+            <p>Streamline your educational institution </p>
           </div>
+        </div>
+        <div className="login-right">
+          <h2>LOGIN</h2>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          {error && <div className="alert alert-error">{error}</div>}
 
-          <div className="form-group">
-            <label htmlFor="captcha">Captcha</label>
-            <div className="captcha-section">
-              <span className="captcha-box">{captcha}</span>
-              <button
-                type="button"
-                onClick={fetchCaptcha}
-                className="btn-small btn-refresh"
-              >
-                🔄 Refresh
-              </button>
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label htmlFor="id">ID</label>
+              <input
+                id="id"
+                type="text"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                required
+              />
             </div>
-            <input
-              id="captcha"
-              type="text"
-              value={captchaInput}
-              onChange={(e) => setCaptchaInput(e.target.value.toUpperCase())}
-              placeholder="Enter the 4-character captcha"
-              required
-              maxLength="4"
-            />
-          </div>
 
-          <button type="submit" disabled={loading} className="btn btn-login">
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="captcha">Captcha</label>
+              <div className="captcha-section">
+                <span className="captcha-box">{captcha}</span>
+                <button
+                  type="button"
+                  onClick={fetchCaptcha}
+                  className="btn-small btn-refresh"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+              <input
+                id="captcha"
+                type="text"
+                value={captchaInput}
+                onChange={(e) => setCaptchaInput(e.target.value.toUpperCase())}
+                placeholder="Enter the 4-character captcha"
+                required
+                maxLength="4"
+              />
+            </div>
+
+            <button type="submit" disabled={loading} className="btn btn-login">
+              {loading ? "Logging in..." : "LOGIN"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

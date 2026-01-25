@@ -1,11 +1,13 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar/Navbar'
 import Landingpage from './components/LandingPage/Landingpage'
-import Login from './components/Login'
+import Login from './components/Login/Login'
 
 
 function App() {
+
+
   return (
     <Router>
       <div className="App">
