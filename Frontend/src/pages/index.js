@@ -1,0 +1,11 @@
+export { default as TeacherDashboard } from './teacherDashboard';
+export { default as StudentDashboard } from './studentDashboard';
+export { default as AdminDashboard } from './adminDashboard';
+export { default as StudentDashboardPage } from '../components/StudentDashboard/DashboardPage';
+export { default as StudentSubjectsPage } from '../components/StudentDashboard/SubjectsPage';
+export { default as StudentResultPage } from '../components/StudentDashboard/ResultPage';
+export { default as AdminDashboardPage } from '../components/AdminDashboard/DashboardPage';
+export { default as AdminStudentsPage } from '../components/AdminDashboard/StudentsPage';
+export { default as AdminTeachersPage } from '../components/AdminDashboard/TeachersPage';
+export { default as AdminSubjectsPage } from '../components/AdminDashboard/SubjectsPage';
+export { default as AdminReportsPage } from '../components/AdminDashboard/ReportsPage';
