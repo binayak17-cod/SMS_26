@@ -66,6 +66,8 @@
 .bttn-cont{
      gap: 15px; 
      display: flex ;
+    text-decoration: none;
+    
 }
 
 
