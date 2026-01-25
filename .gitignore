@@ -76,3 +76,7 @@ venv.bak/
 # Database
 *.db
 *.sqlite3
+
+# Case sensitivity issues
+Backend/
+Frontend/

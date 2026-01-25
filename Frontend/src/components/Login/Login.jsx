@@ -75,7 +75,12 @@ export default function Login() {
       );
 
       if (loginResponse.data.success) {
-        setUser(loginResponse.data.id);
+        const { role, dashboard } = loginResponse.data;
+        if (role && dashboard) {
+          window.location.href = dashboard;
+        } else {
+          setUser(loginResponse.data.id);
+        }
       } else {
         setError(loginResponse.data.message || "Login failed");
       }

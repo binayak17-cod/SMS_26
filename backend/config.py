@@ -1,10 +1,10 @@
 import os
 
 class Config:
-    # MySQL Database Configuration
+    # SQLite Database Configuration (no MySQL server needed)
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL",
-        "mysql+pymysql://root:root@localhost:3306/sms_db"
+        "sqlite:///sms_db.sqlite"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = "084c798ae26ad8bb088a191feb8224f772"

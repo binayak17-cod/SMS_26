@@ -13,6 +13,20 @@ from models import db, User
 app = Flask(__name__)
 app.config.from_object(Config)
 
+
+users = [
+    {
+        "id": "1260",
+        "password": generate_password_hash("admin123"),
+        "role": "admin"
+    },
+    {
+        "id": "23CSE346",
+        "password": generate_password_hash("student123"),
+        "role": "student"
+    }
+] 
+
 # Initialize database
 db.init_app(app)
 
@@ -46,7 +60,6 @@ def verify_captcha():
     if user_captcha != expected:
         return jsonify({"success": False, "message": "Captcha does not match"}), 400
 
-    # Generate a temporary token for the next step
     temp_token = generate_csrf()
     session["pending_login"] = {"token": temp_token}
     return jsonify(
@@ -54,58 +67,40 @@ def verify_captcha():
     )
 
 
-@app.route("/api/login", methods=["POST"])
-def login():
-    """Verify id and password."""
-    data = request.get_json()
-    user_id = data.get("id", "").strip()
-    password = data.get("password", "")
 
-    # Check if user exists
-    user = User.query.filter_by(id=user_id).first()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    id = data.get('id')
+    password = data.get('password')
+    
+    
+    user = next((u for u in users if u["id"] == id), None)
     
     if not user:
-        # ID doesn't exist
         return jsonify({"success": False, "message": "ID not found"}), 401
     
-    # ID exists, now check password
-    if not user.check_password(password):
-        # Password is wrong
+    if not check_password_hash(user["password"], password):
         return jsonify({"success": False, "message": "Wrong password"}), 401
     
-    # Both ID and password are correct
     session.pop("captcha", None)
     session.pop("pending_login", None)
-    session["user_id"] = user_id
-    return jsonify(
-        {"success": True, "message": "Login successful", "id": user_id}
-    )
-
-
-@app.route("/api/dashboard", methods=["GET"])
-def dashboard():
-    """Get user dashboard data (requires login)."""
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"success": False, "message": "Not logged in"}), 401
-
-    return jsonify(
-        {
-            "success": True,
-            "message": f"Welcome {user_id}",
-            "id": user_id,
-        }
-    )
-
-
-@app.route("/api/logout", methods=["POST"])
+    session["user_id"] = id
+    
+    return jsonify({
+        "success": True,
+        "message": "Login successful",
+        "id": id,
+        "role": user["role"],
+        "dashboard": '/admin-dashboard' if user["role"] == 'admin' else '/student-dashboard'
+    }), 200
+    
+@app.route('/api/logout', methods=['POST'])
 def logout():
-    """Logout user."""
-    session.pop("user_id", None)
-    session.pop("captcha", None)
-    session.pop("pending_login", None)
-    return jsonify({"success": True, "message": "Logged out"})
+    session.clear()
+    return jsonify({"success": True})
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True)  
