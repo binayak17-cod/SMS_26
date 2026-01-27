@@ -24,6 +24,11 @@ users = [
         "id": "23CSE346",
         "password": generate_password_hash("student123"),
         "role": "student"
+    },
+    {
+        "id": "345",
+        "password": generate_password_hash("faculty123"),
+        "role": "faculty"
     }
 ] 
 
@@ -93,7 +98,7 @@ def login():
         "message": "Login successful",
         "id": id,
         "role": user["role"],
-        "dashboard": '/admin-dashboard' if user["role"] == 'admin' else '/student-dashboard'
+        "dashboard": '/admin-dashboard' if user["role"] == 'admin' else '/student-dashboard' if user["role"] == 'student' else '/admin-dashboard'
     }), 200
     
 @app.route('/api/logout', methods=['POST'])
