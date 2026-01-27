@@ -98,7 +98,7 @@ def login():
         "message": "Login successful",
         "id": id,
         "role": user["role"],
-        "dashboard": '/admin-dashboard' if user["role"] == 'admin' else '/student-dashboard' if user["role"] == 'student' else '/admin-dashboard'
+        "dashboard": '/admin' if user["role"] == 'admin' else '/student' if user["role"] == 'student' else '/teacher'
     }), 200
     
 @app.route('/api/logout', methods=['POST'])
