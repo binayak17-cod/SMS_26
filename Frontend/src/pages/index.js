@@ -1,3 +1,4 @@
+export { default as AdminDashboard } from './AdminDashboard';
 export { default as TeacherDashboard } from './teacherDashboard';
 export { default as StudentDashboard } from './studentDashboard';
 export { default as StudentDashboardPage } from '../components/StudentDashboard/DashboardPage';
