@@ -1,13 +1,8 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
-import {
-  TeacherDashboard,
-  StudentDashboard,
-  StudentDashboardPage,
-  StudentSubjectsPage,
-  StudentResultPage
-} from './pages'
+import TeacherDashboard from './pages/teacherDashboard'
+import StudentDashboard from './pages/studentDashboard'
 
 function App() {
   const [dashboardType, setDashboardType] = useState('student') // 'admin' or 'student'
@@ -18,12 +13,7 @@ function App() {
         {dashboardType === 'admin' ? (
           <TeacherDashboard />
         ) : (
-          <Routes>
-            <Route path="/student/dashboard" element={<StudentDashboardPage />} />
-            <Route path="/student/subjects" element={<StudentSubjectsPage />} />
-            <Route path="/student/result" element={<StudentResultPage />} />
-            <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
-          </Routes>
+          <StudentDashboard />
         )}
 
         {/* Dashboard Switcher */}

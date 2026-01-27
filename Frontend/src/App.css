@@ -608,3 +608,42 @@ body {
 
   /* Or move to bottom */
 }
+
+/* Excel-like Table Style */
+.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  background: white;
+}
+
+.excel-table th {
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  background: #f4f7fe;
+  color: #2b3674;
+  font-weight: 700;
+  text-align: left;
+}
+
+.excel-table td {
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  color: #2b3674;
+  font-weight: 500;
+}
+
+.excel-table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.excel-table tr:hover {
+  background: #f0f9ff;
+}
+
+.excel-table th:first-child,
+.excel-table td:first-child {
+  text-align: center;
+  width: 80px;
+}

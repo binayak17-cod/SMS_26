@@ -6,11 +6,11 @@ import '../../App.css'
 const TeacherLayout = ({ children }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard')
 
-  const menuItems = ['Dashboard', 'Overview', 'Attendance', 'Students', 'Teachers', 'Result']
+  const menuItems = ['Dashboard', 'Attendance', 'Students', 'Teachers', 'Result']
 
   return (
     <motion.div className="dashboard-root">
-      <motion.aside 
+      <motion.aside
         className="sidebar"
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -36,7 +36,7 @@ const TeacherLayout = ({ children }) => {
         </nav>
         <motion.div className="invite">
           <div className="invite-illustration">📊</div>
-          <motion.button 
+          <motion.button
             className="invite-btn"
             onClick={() => alert('Analytics feature coming soon!')}
             whileHover={{ scale: 1.02 }}
@@ -48,14 +48,14 @@ const TeacherLayout = ({ children }) => {
       </motion.aside>
 
       <motion.main className="maincol">
-        <motion.header 
+        <motion.header
           className="topbar"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <motion.div className="top-left">
-            <motion.h2 
+            <motion.h2
               className="page-title"
               key={activeMenu}
               initial={{ opacity: 0, x: -20 }}
@@ -68,14 +68,14 @@ const TeacherLayout = ({ children }) => {
           </motion.div>
           <div className="top-right">
             <motion.div className="search">
-              <motion.input 
-                placeholder="Search" 
+              <motion.input
+                placeholder="Search"
                 whileFocus={{ borderColor: '#3b82f6', boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)' }}
                 transition={{ duration: 0.2 }}
               />
             </motion.div>
-            <motion.div 
-              className="profile" 
+            <motion.div
+              className="profile"
               onClick={() => alert('Profile menu')}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
