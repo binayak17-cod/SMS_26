@@ -7,7 +7,7 @@ const TeacherLayout = ({ children }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
 
-  const menuItems = ['Dashboard', 'Overview', 'Attendance', 'Students', 'Teachers', 'Result']
+  const menuItems = ['Dashboard', 'Attendance', 'Students', 'Teachers', 'Result']
 
   return (
     <motion.div className="dashboard-root">
