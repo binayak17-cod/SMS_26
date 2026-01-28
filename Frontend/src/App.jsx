@@ -2,9 +2,16 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css'
 import LandingPage from './components/LandingPage/Landingpage'
 import Login from './components/Login/Login'
-import AdminDashboard from './pages/AdminDashboard.jsx'
 import StudentDashboard from './pages/studentDashboard'
 import TeacherDashboard from './pages/teacherDashboard'
+import OverviewPage from './components/TeacherDashboard/OverviewPage'
+import ResultPage from './components/TeacherDashboard/ResultPage'
+
+import StudentsPage from './components/TeacherDashboard/StudentsPage'
+import AdminDashboard from './pages/AdminDashboard'
+
+
+
 
 function App() {
   return (

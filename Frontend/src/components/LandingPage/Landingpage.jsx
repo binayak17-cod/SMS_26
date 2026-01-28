@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
 import './LandingPage.css'
 import { Link } from 'react-router-dom'
 import Navbar from '../Navbar/Navbar'
 import { School, People, Assessment, Chat } from '@mui/icons-material'
+import { motion } from 'framer-motion'
 
 const LandingPage = () => {
   const aboutRef = useRef(null)
