@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import './LandingPage.css'
 import { Link } from 'react-router-dom'
 import Navbar from '../Navbar/Navbar'
-import { School, People, Assessment, Chat } from '@mui/icons-material'
-import { motion } from 'framer-motion'
+import { School, People, Assessment, Chat, Close } from '@mui/icons-material'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const LandingPage = () => {
   const aboutRef = useRef(null)
@@ -16,6 +16,30 @@ const LandingPage = () => {
   })
 
   const [status, setStatus] = useState("")
+  const [selectedCard, setSelectedCard] = useState(null)
+
+  const cardDetails = {
+    0: {
+      title: "Student Management",
+      fullDescription: "Our comprehensive student management system provides complete control over student information, enrollment processes, and academic records. Features include automated enrollment workflows, detailed student profiles, academic history tracking, and seamless integration with other school systems.",
+      features: ["Student Registration & Enrollment", "Academic Records Management", "Profile & Document Storage", "Transfer & Withdrawal Processing"]
+    },
+    1: {
+      title: "Attendance Tracking",
+      fullDescription: "Advanced attendance monitoring system with real-time tracking capabilities. Teachers can mark attendance digitally, generate automated reports, and parents receive instant notifications about their child's attendance status.",
+      features: ["Real-time Attendance Marking", "Automated Parent Notifications", "Attendance Analytics & Reports", "Integration with Academic Performance"]
+    },
+    2: {
+      title: "Grade Management",
+      fullDescription: "Sophisticated grading system that streamlines assessment processes and provides detailed performance analytics. Teachers can input grades efficiently while students and parents get instant access to academic progress.",
+      features: ["Digital Gradebook", "Performance Analytics", "Progress Tracking", "Automated Report Cards"]
+    },
+    3: {
+      title: "Communication",
+      fullDescription: "Integrated communication platform that connects teachers, students, and parents in a secure environment. Share announcements, assignments, and important updates instantly across the school community.",
+      features: ["Instant Messaging", "Announcement System", "Parent-Teacher Communication", "Assignment Distribution"]
+    }
+  }
 
   const handleChange = (e) => {
     setFormData({
@@ -182,6 +206,8 @@ const LandingPage = () => {
                     boxShadow: "0 15px 30px rgba(0, 0, 0, 0.3)",
                     transition: { duration: 0.3 }
                   }}
+                  onClick={() => setSelectedCard(index)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <motion.div
                     initial={{ scale: 0 }}
@@ -198,6 +224,58 @@ const LandingPage = () => {
               )
             })}
           </div>
+          
+          <AnimatePresence>
+            {selectedCard !== null && (
+              <motion.div
+                className="modal-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={() => setSelectedCard(null)}
+              >
+                <motion.div
+                  className="modal-content"
+                  initial={{ scale: 0.8, opacity: 0, y: 50 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.8, opacity: 0, y: 50 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="modal-header">
+                    <h3>{cardDetails[selectedCard]?.title}</h3>
+                    <button 
+                      className="modal-close"
+                      onClick={() => setSelectedCard(null)}
+                    >
+                      <Close />
+                    </button>
+                  </div>
+                  
+                  <div className="modal-body">
+                    <p>{cardDetails[selectedCard]?.fullDescription}</p>
+                    
+                    <div className="features-section">
+                      <h4>Key Features:</h4>
+                      <ul>
+                        {cardDetails[selectedCard]?.features.map((feature, idx) => (
+                          <motion.li
+                            key={idx}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.1, duration: 0.3 }}
+                          >
+                            {feature}
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           
           <motion.div 
             className="contact-section"

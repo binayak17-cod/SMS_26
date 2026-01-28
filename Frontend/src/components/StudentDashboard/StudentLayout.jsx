@@ -5,6 +5,7 @@ import '../../App.css'
 
 const StudentLayout = ({ children }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard')
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   const menuItems = ['Dashboard', 'Subjects', 'Result']
 
@@ -85,15 +86,78 @@ const StudentLayout = ({ children }) => {
             >
               <span style={{ fontSize: '20px' }}>🔔</span>
             </motion.div>
-            <motion.div
-              className="profile"
-              onClick={() => alert('Profile menu')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <motion.div className="avatar">ST</motion.div>
-              <div className="profile-name">Student Name</div>
-            </motion.div>
+            <div style={{ position: 'relative' }}>
+              <motion.div
+                className="profile"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <motion.div className="avatar">ST</motion.div>
+                <div className="profile-name">Student Name</div>
+              </motion.div>
+
+              {isProfileOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  style={{
+                    position: 'absolute',
+                    top: '120%',
+                    right: 0,
+                    width: '200px',
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    padding: '8px',
+                    zIndex: 100,
+                    border: '1px solid #f0f0f0'
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '10px 16px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: '#2b3674',
+                      fontWeight: '500',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                    onMouseEnter={(e) => (e.target.style.background = '#f4f7fe')}
+                    onMouseLeave={(e) => (e.target.style.background = 'transparent')}
+                    onClick={() => alert('Update Profile Clicked')}
+                  >
+                    <span>👤</span> Update Profile
+                  </div>
+                  <div
+                    style={{
+                      padding: '10px 16px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: '#e31a1a',
+                      fontWeight: '500',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginTop: '4px'
+                    }}
+                    onMouseEnter={(e) => (e.target.style.background = '#fff5f5')}
+                    onMouseLeave={(e) => (e.target.style.background = 'transparent')}
+                    onClick={() => {
+                      alert('Logging out...')
+                      // window.location.href = '/' // Uncomment when auth is ready
+                    }}
+                  >
+                    <span>🚪</span> Logout
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
         </motion.header>
 
