@@ -63,7 +63,7 @@ export default function StudentDashboardPage() {
         {/* Left Main Column */}
         <div className="left-main-col">
 
-          {/* Welcome Banner */}
+          
           <motion.div
             className="welcome-banner"
             initial={{ opacity: 0, y: 20 }}
@@ -76,24 +76,19 @@ export default function StudentDashboardPage() {
               <p>You have 2 assignments due this week and 3 upcoming classes today. Keep up the great work!</p>
               <button className="banner-btn">Check Assignments</button>
             </div>
-            {/* Illustration placeholder or unicode */}
-            <div style={{ fontSize: '120px', lineHeight: 1, opacity: 0.9 }}>🎓</div>
+            <div style={{ fontSize: '120px', lineHeight: 1, opacity: 0.4}}>🎓</div>
           </motion.div>
 
-
-
-          {/* Attendance Overview Section */}
           <div className="card-section">
             <div className="section-title">Attendance Overview</div>
             <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '20px 0', flexWrap: 'wrap', gap: '20px' }}>
 
-              {/* Class Attendance */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{
                   width: '120px',
                   height: '120px',
                   borderRadius: '50%',
-                  background: 'conic-gradient(#3b82f6 0% 85%, #f4f7fe 85% 100%)',
+                  background: 'conic-gradient(#3b82f6 0% 85%, #bfcbe7 85% 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -101,7 +96,7 @@ export default function StudentDashboardPage() {
                   marginBottom: '10px'
                 }}>
                   <div style={{ background: 'white', width: '90px', height: '90px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937' }}>85%</span>
+                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#384557' }}>80%</span>
                   </div>
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>Class Attendance</div>

@@ -7,8 +7,6 @@ import TeacherDashboard from './pages/teacherDashboard'
 import AdminDashboard from './pages/AdminDashboard'
 
 
-
-
 function App() {
   return (
     <Router>
@@ -16,14 +14,16 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+
+          <Route path ="/logout" element={<Login/>}/>
           
-          {/* Admin Routes - The AdminDashboard component handles its own sub-routes /admin/* */}
+          {/*Admin Route */}
           <Route path="/admin/*" element={<AdminDashboard />} />
 
-          {/* Student Routes */}
+          {/* Student Route */}
           <Route path="/student/*" element={<StudentDashboard />} />
 
-          {/* Teacher Routes */}
+          {/* Teacher Route */}
           <Route path="/teacher/*" element={<TeacherDashboard />} />
 
           {/* Catch all - Redirect to login */}

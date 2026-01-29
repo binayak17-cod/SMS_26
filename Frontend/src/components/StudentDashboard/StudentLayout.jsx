@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import { color, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import '../../App.css'
 
@@ -17,10 +17,9 @@ const StudentLayout = ({ children }) => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="brand">
-          <div className="logo-mark">ST</div>
-          <div className="brand-text">Student Panel</div>
-        </div>
+        
+          <div className="brand-text">Student Portal</div>
+        
         <nav className="menu">
           {menuItems.map(item => (
             <Link to={`/student/${item.toLowerCase()}`} key={item} style={{ textDecoration: 'none' }}>
@@ -96,70 +95,64 @@ const StudentLayout = ({ children }) => {
                 <motion.div className="avatar">ST</motion.div>
                 <div className="profile-name">Student Name</div>
               </motion.div>
-
-              {isProfileOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  style={{
-                    position: 'absolute',
-                    top: '120%',
-                    right: 0,
-                    width: '200px',
-                    background: 'white',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    padding: '8px',
-                    zIndex: 100,
-                    border: '1px solid #f0f0f0'
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: '10px 16px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      color: '#2b3674',
-                      fontWeight: '500',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                    onMouseEnter={(e) => (e.target.style.background = '#f4f7fe')}
-                    onMouseLeave={(e) => (e.target.style.background = 'transparent')}
-                    onClick={() => alert('Update Profile Clicked')}
-                  >
-                    <span>👤</span> Update Profile
-                  </div>
-                  <div
-                    style={{
-                      padding: '10px 16px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      color: '#e31a1a',
-                      fontWeight: '500',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginTop: '4px'
-                    }}
-                    onMouseEnter={(e) => (e.target.style.background = '#fff5f5')}
-                    onMouseLeave={(e) => (e.target.style.background = 'transparent')}
-                    onClick={() => {
-                      alert('Logging out...')
-                      // window.location.href = '/' // Uncomment when auth is ready
-                    }}
-                  >
-                    <span>🚪</span> Logout
-                  </div>
-                </motion.div>
-              )}
             </div>
           </div>
         </motion.header>
+
+        {isProfileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            style={{
+              position: 'fixed',
+              top: '110px',
+              right: '50px',
+              width: '180px',
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+              padding: '8px',
+              zIndex: 999999,
+              border: '1px solid #e5e7eb'
+            }}
+          >
+            <div
+              style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                color: '#374151',
+                fontWeight: '500',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'background 0.2s'
+              }}
+              
+            >
+              <span>👤</span> Update Profile
+            </div>
+            <div
+              style={{
+                padding: '12px 16px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                color: '#dc2626',
+                fontWeight: '500',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'background 0.2s'
+              }}
+          
+            >
+             <Link to = '/logout'> <span>🔃</span> Logout </Link>
+            </div>
+          </motion.div>
+        )}
 
         {children}
       </motion.main>
