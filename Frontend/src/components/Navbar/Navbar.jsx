@@ -1,31 +1,26 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+import { ArrowRight } from 'lucide-react'
 import './Navbar.css'
 
-const Navbar = () => {
-  const [isVisible, setIsVisible] = useState(true)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsVisible(true)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
+export const Navbar = () => {
   return (
-    <nav className={`navbar ${!isVisible ? 'hidden' : ''}`}>
-      <div className="navbar-brand">
-        <h1>EDUNEXUS</h1>
+    <nav className="navbar">
+      <div className="nav-left">
+        <h1 className="logo">Edunexus</h1>
       </div>
-      <div className="navbar-nav">
-        <ul>
-          <li>CONTACT US</li>
-          <li>ABOUT US</li>
-        </ul>
+      
+      <div className="nav-center">
+        <a href="#about" className="nav-link">About</a>
+        <a href="#contact" className="nav-link">Contact Us</a>
+        <a href="#services" className="nav-link">Services</a>
+      </div>
+      
+      <div className="nav-right">
+        <button className="get-started-btn">
+          Get Started
+          <ArrowRight size={16} />
+        </button>
       </div>
     </nav>
   )
 }
-
-export default Navbar

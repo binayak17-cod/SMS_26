@@ -31,6 +31,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
   const [captcha, setCaptcha] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
@@ -68,19 +69,24 @@ export default function Login() {
         throw new Error("Captcha verification failed");
       }
 
+      // Get CSRF token from captcha response
+      const token = captchaResponse.data.temp_token;
+      setCsrfToken(token);
+
       const loginResponse = await axios.post(
         `${API_BASE}/login`,
-        { id, password },
-        { withCredentials: true }
+        { id, password, captcha: captchaInput, csrf_token: token },
+        { 
+          withCredentials: true,
+          headers: {
+            'X-CSRFToken': token
+          }
+        }
       );
 
       if (loginResponse.data.success) {
-        const { role, dashboard } = loginResponse.data;
-        if (role && dashboard) {
-          window.location.href = dashboard;
-        } else {
-          setUser(loginResponse.data.id);
-        }
+        const { dashboard } = loginResponse.data;
+        window.location.href = dashboard;
       } else {
         setError(loginResponse.data.message || "Login failed");
       }

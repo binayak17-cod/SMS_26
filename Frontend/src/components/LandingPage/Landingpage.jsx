@@ -1,407 +1,405 @@
-import React, { useEffect, useRef, useState } from 'react'
-import './LandingPage.css'
+import React from 'react'
+import { motion } from 'framer-motion'
+import { ArrowRight, BookOpen, Users, Award } from 'lucide-react'
+import { Navbar } from '../Navbar/Navbar'
+import heroImage from '../../assets/img4.png'
 import { Link } from 'react-router-dom'
-import Navbar from '../Navbar/Navbar'
-import { School, People, Assessment, Chat, Close } from '@mui/icons-material'
-import { motion, AnimatePresence } from 'framer-motion'
 
-const LandingPage = () => {
-  const aboutRef = useRef(null)
-  const scrollContainerRef = useRef(null)
+import ServiceSection from './ServiceSection'
+import About from './About'
+import Footer from './Footer'
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: ""
-  })
-
-  const [status, setStatus] = useState("")
-  const [selectedCard, setSelectedCard] = useState(null)
-
-  const cardDetails = {
-    0: {
-      title: "Student Management",
-      fullDescription: "Our comprehensive student management system provides complete control over student information, enrollment processes, and academic records. Features include automated enrollment workflows, detailed student profiles, academic history tracking, and seamless integration with other school systems.",
-      features: ["Student Registration & Enrollment", "Academic Records Management", "Profile & Document Storage", "Transfer & Withdrawal Processing"]
-    },
-    1: {
-      title: "Attendance Tracking",
-      fullDescription: "Advanced attendance monitoring system with real-time tracking capabilities. Teachers can mark attendance digitally, generate automated reports, and parents receive instant notifications about their child's attendance status.",
-      features: ["Real-time Attendance Marking", "Automated Parent Notifications", "Attendance Analytics & Reports", "Integration with Academic Performance"]
-    },
-    2: {
-      title: "Grade Management",
-      fullDescription: "Sophisticated grading system that streamlines assessment processes and provides detailed performance analytics. Teachers can input grades efficiently while students and parents get instant access to academic progress.",
-      features: ["Digital Gradebook", "Performance Analytics", "Progress Tracking", "Automated Report Cards"]
-    },
-    3: {
-      title: "Communication",
-      fullDescription: "Integrated communication platform that connects teachers, students, and parents in a secure environment. Share announcements, assignments, and important updates instantly across the school community.",
-      features: ["Instant Messaging", "Announcement System", "Parent-Teacher Communication", "Assignment Distribution"]
-    }
-  }
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setStatus('Sending...')
-
-    try {
-      const response = await fetch('http://127.0.0.1:5000/api/contact', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setStatus('Message sent successfully!')
-        setFormData({ name: "", email: "", message: "" })
-      } else {
-        setStatus('Failed to send message. Please try again later.')
-      }
-    } catch (error) {
-      console.log(error)
-      setStatus("An error occurred. Please try again later.")
-    }
-  }
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 100) {
-        aboutRef.current?.classList.add('visible')
-      } else {
-        aboutRef.current?.classList.remove('visible')
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.2,
-        duration: 0.6,
-        ease: "easeOut"
-      }
-    })
-  }
-
+export const LandingPage = () => {
   return (
     <>
-     <Navbar />
-      <div style={{ height: '200vh' }} ref={scrollContainerRef}>
-        <div className="landing-container">
-          <div className="hero-section">
-            <motion.h1
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: "easeOut" }}
+      <Navbar/>
+      <section className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-200 to-slate-400 relative overflow-hidden flex items-center px-4 lg:px-8">
+        <style>
+          {`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');`}
+        </style>
+        {/* Enhanced Wireframe Grid Background */}
+        <motion.div 
+          className="absolute inset-0 opacity-10"
+          animate={{ 
+            backgroundPosition: ['0px 0px', '20px 20px', '0px 0px'],
+            opacity: [0.05, 0.15, 0.05]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <div className="h-full w-full" style={{
+            backgroundImage: 'linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)',
+            backgroundSize: '20px 20px'
+          }}></div>
+        </motion.div>
+        
+        {/* Animated Grid Dots */}
+        <motion.div className="absolute inset-0 pointer-events-none">
+          {[...Array(30)].map((_, i) => (
+            <motion.div
+              key={`dot-${i}`}
+              className="absolute w-1 h-1 bg-blue-500/30 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                scale: [0, 1, 0],
+                opacity: [0, 0.8, 0]
+              }}
+              transition={{
+                duration: 4,
+                delay: Math.random() * 3,
+                repeat: Infinity,
+                repeatDelay: Math.random() * 2
+              }}
+            />
+          ))}
+        </motion.div>
+        
+        {/* Floating Geometric Shapes */}
+        <motion.div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={`shape-${i}`}
+              className={`absolute ${
+                i % 3 === 0 ? 'w-4 h-4 bg-indigo-400/10 rounded-full' :
+                i % 3 === 1 ? 'w-3 h-3 bg-blue-400/10 rotate-45' :
+                'w-2 h-6 bg-slate-400/10'
+              }`}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [-20, -100, -20],
+                x: [0, Math.random() * 50 - 25, 0],
+                rotate: [0, 360, 0],
+                opacity: [0, 0.6, 0]
+              }}
+              transition={{
+                duration: 8 + Math.random() * 4,
+                delay: Math.random() * 5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+        </motion.div>
+        
+        {/* Enhanced Animated Lines */}
+        <motion.div 
+          className="absolute inset-0 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2 }}
+        >
+          {[...Array(25)].map((_, i) => (
+            <motion.div
+              key={`line-${i}`}
+              className="absolute bg-black/10 h-px"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: 0,
+                right: 0,
+              }}
+              animate={{
+                scaleX: [0, 1, 0],
+                opacity: [0, 0.6, 0],
+                x: ['-100%', '0%', '100%']
+              }}
+              transition={{
+                duration: 4 + Math.random() * 2,
+                delay: Math.random() * 3,
+                repeat: Infinity,
+                repeatDelay: Math.random() * 6,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+          
+          {/* Vertical Lines */}
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={`vline-${i}`}
+              className="absolute bg-black/10 w-px"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: 0,
+                bottom: 0,
+              }}
+              animate={{
+                scaleY: [0, 1, 0],
+                opacity: [0, 0.4, 0]
+              }}
+              transition={{
+                duration: 5 + Math.random() * 3,
+                delay: Math.random() * 4,
+                repeat: Infinity,
+                repeatDelay: Math.random() * 8,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+        </motion.div>
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
+          
+          {/* Left Side - Content */}
+          <div className="text-center lg:text-left relative mt-16">
+            {/* Graduation Cap above Welcome */}
+            <motion.div
+              className="absolute -top-12 left-1/2 lg:left-0 transform -translate-x-1/2 lg:translate-x-0 text-6xl"
+              style={{ rotate: '-15deg' }}
+              animate={{
+                y: [-5, 5, -5],
+                rotate: [-15, -10, -15]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
             >
-              Welcome to <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-              >EDUNEXUS</motion.span>
-            </motion.h1>
+              🎓
+            </motion.div>
             
-            <motion.h2
-              initial={{ opacity: 0, x: -100 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-            >
-              Student Management System
-            </motion.h2>
-            
-            <motion.p
+            <motion.h1 
+              className="text-6xl lg:text-7xl font-bold text-gray-900 mb-12 leading-tight"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.8 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Streamline your educational institution with our comprehensive management solution
+             
+              <span className="bg-gradient-to-r from-black via-indigo-900 to-slate-700 bg-clip-text text-transparent" style={{ fontFamily: 'cursive' }}>
+                EduNexus
+              </span>
+            </motion.h1>
+            
+            <motion.p 
+              className="text-2xl text-slate-400 mb-12 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light tracking-wide text-justify"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              Empowering institutions with a complete Student Management System for better learning and administration. Upgrade your institution with our all-in-one Student Management System. Simple setup, powerful features.
             </motion.p>
             
-            <Link to="/login" style={{ textDecoration: 'none' }}>
-              <motion.div 
-                className="bttn-cont"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.6, duration: 0.6 }}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <Link to ="/login">
+              <motion.button 
+                className="bg-gradient-to-r from-blue-300 to-indigo-500 hover:from-blue-800 hover:to-indigo-800 text-white px-8 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Go to Portal
+                <ArrowRight className="w-5 h-5" />
+              </motion.button>
+              </Link>
+              
+              <motion.button 
+                className="border-2 border-gray-400 hover:border-blue-700 text-gray-800 hover:text-blue-700 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <motion.button
-                  whileHover={{ 
-                    boxShadow: "0 10px 25px rgba(138, 193, 193, 0.4)",
-                    y: -2
-                  }}
-                  transition={{ duration: 0.3 }}
-                >
-                  Go To Portal
-                </motion.button>
-              </motion.div>
-            </Link>
-          </div>
-        </div>
-        
-        <section className="about-section" ref={aboutRef}>
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            What We Do
-          </motion.h2>
-          
-          <div className="cards-container">
-            {[
-              {
-                title: "Student Management",
-                description: "Comprehensive student information and enrollment management system",
-                icon: School
-              },
-              {
-                title: "Attendance Tracking",
-                description: "Real-time attendance monitoring and automated reporting",
-                icon: People
-              },
-              {
-                title: "Grade Management",
-                description: "Efficient grading system with detailed performance analytics",
-                icon: Assessment
-              },
-              {
-                title: "Communication",
-                description: "Seamless communication between teachers, students, and parents",
-                icon: Chat
-              }
-            ].map((card, index) => {
-              const IconComponent = card.icon
-              return (
-                <motion.div
-                  key={index}
-                  className="card"
-                  custom={index}
-                  initial="hidden"
-                  whileInView="visible"
-                  variants={cardVariants}
-                  viewport={{ once: true, margin: "-100px" }}
-                  whileHover={{ 
-                    scale: 1.05,
-                    boxShadow: "0 15px 30px rgba(0, 0, 0, 0.3)",
-                    transition: { duration: 0.3 }
-                  }}
-                  onClick={() => setSelectedCard(index)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    transition={{ delay: index * 0.2 + 0.3, duration: 0.5 }}
-                    viewport={{ once: true }}
-                    style={{ marginBottom: '1rem' }}
-                  >
-                    <IconComponent sx={{ fontSize: 48, color: '#6c757d' }} />
-                  </motion.div>
-                  <h3>{card.title}</h3>
-                  <p>{card.description}</p>
-                </motion.div>
-              )
-            })}
-          </div>
-          
-          <AnimatePresence>
-            {selectedCard !== null && (
-              <motion.div
-                className="modal-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                onClick={() => setSelectedCard(null)}
-              >
-                <motion.div
-                  className="modal-content"
-                  initial={{ scale: 0.8, opacity: 0, y: 50 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.8, opacity: 0, y: 50 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="modal-header">
-                    <h3>{cardDetails[selectedCard]?.title}</h3>
-                    <button 
-                      className="modal-close"
-                      onClick={() => setSelectedCard(null)}
-                    >
-                      <Close />
-                    </button>
-                  </div>
-                  
-                  <div className="modal-body">
-                    <p>{cardDetails[selectedCard]?.fullDescription}</p>
-                    
-                    <div className="features-section">
-                      <h4>Key Features:</h4>
-                      <ul>
-                        {cardDetails[selectedCard]?.features.map((feature, idx) => (
-                          <motion.li
-                            key={idx}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.1, duration: 0.3 }}
-                          >
-                            {feature}
-                          </motion.li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          
-          <motion.div 
-            className="contact-section"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <h2>Contact Us</h2>
-            <form className="contact-form" onSubmit={handleSubmit}>
-              <motion.input 
-                type="text" 
-                name='name' 
-                placeholder="Your Name" 
-                value={formData.name} 
-                onChange={handleChange} 
-                required
-                whileFocus={{ scale: 1.02, boxShadow: "0 0 20px rgba(138, 193, 193, 0.3)" }}
-                transition={{ duration: 0.2 }}
-              />
-              <motion.input 
-                type="email" 
-                name='email' 
-                placeholder="Your Email" 
-                value={formData.email} 
-                onChange={handleChange} 
-                required
-                whileFocus={{ scale: 1.02, boxShadow: "0 0 20px rgba(138, 193, 193, 0.3)" }}
-                transition={{ duration: 0.2 }}
-              />
-              <motion.textarea 
-                name='message' 
-                placeholder="Your Message" 
-                rows="5" 
-                value={formData.message} 
-                onChange={handleChange} 
-                required
-                whileFocus={{ scale: 1.02, boxShadow: "0 0 20px rgba(138, 193, 193, 0.3)" }}
-                transition={{ duration: 0.2 }}
-              />
-              <motion.button 
-                type="submit"
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 10px 25px rgba(138, 193, 193, 0.4)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                Send Message
+                Learn More
               </motion.button>
-              {status && (
-                <motion.p 
-                  className="status-message"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {status}
-                </motion.p>
-              )}
-            </form>
-          </motion.div>
-          
-          <motion.footer 
-            className="footer"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            viewport={{ once: true }}
+            </motion.div>
+          </div>
+
+          <motion.div 
+            className="flex justify-center lg:justify-end -mt-16"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            <div className="footer-content">
-              <motion.div 
-                className="footer-section"
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                viewport={{ once: true }}
-              >
-                <h3>EDUNEXUS</h3>
-                <p>Transforming education management with innovative solutions for modern institutions.</p>
+            <div className="relative">
+              {/* Animated Elements Around Image */}
+              <motion.div className="absolute -inset-20 pointer-events-none z-20">
+                {/* Floating Hearts */}
+                <motion.div
+                  className="absolute text-pink-500 text-4xl"
+                  style={{ left: '10%', top: '20%' }}
+                  animate={{
+                    y: [-10, -30, -10],
+                    scale: [0.8, 1.2, 0.8],
+                    opacity: [0.7, 1, 0.7],
+                    rotate: [0, 15, -15, 0]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  ♥
+                </motion.div>
+                
+                <motion.div
+                  className="absolute text-pink-500 text-3xl"
+                  style={{ right: '15%', top: '10%' }}
+                  animate={{
+                    y: [-5, -25, -5],
+                    scale: [0.9, 1.1, 0.9],
+                    opacity: [0.6, 1, 0.6]
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    delay: 0.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  ♥
+                </motion.div>
+                
+                {/* Floating Stars */}
+                <motion.div
+                  className="absolute text-yellow-500 text-3xl"
+                  style={{ left: '80%', top: '30%' }}
+                  animate={{
+                    rotate: [0, 360],
+                    scale: [0.8, 1.2, 0.8],
+                    opacity: [0.7, 1, 0.7]
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  ✦
+                </motion.div>
+                
+                <motion.div
+                  className="absolute text-yellow-500 text-2xl"
+                  style={{ left: '5%', top: '70%' }}
+                  animate={{
+                    rotate: [0, -360],
+                    scale: [0.7, 1.3, 0.7],
+                    opacity: [0.6, 1, 0.6]
+                  }}
+                  transition={{
+                    duration: 3.5,
+                    delay: 1,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  ✦
+                </motion.div>
+                
+                {/* Floating Exclamation Marks */}
+                <motion.div
+                  className="absolute text-orange-500 text-4xl font-bold"
+                  style={{ right: '10%', bottom: '20%' }}
+                  animate={{
+                    y: [0, -20, 0],
+                    scale: [0.8, 1.3, 0.8],
+                    opacity: [0.7, 1, 0.7]
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    delay: 0.3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  !
+                </motion.div>
+                
+                {/* Floating Sparkles */}
+                <motion.div
+                  className="absolute text-blue-500 text-2xl"
+                  style={{ left: '70%', bottom: '10%' }}
+                  animate={{
+                    scale: [0, 1.5, 0],
+                    opacity: [0, 1, 0],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{
+                    duration: 2,
+                    delay: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  ✨
+                </motion.div>
+                
+                <motion.div
+                  className="absolute text-blue-500 text-3xl"
+                  style={{ left: '20%', bottom: '30%' }}
+                  animate={{
+                    scale: [0, 1.2, 0],
+                    opacity: [0, 1, 0],
+                    rotate: [0, -180, -360]
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    delay: 0.8,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  ✨
+                </motion.div>
               </motion.div>
-              <motion.div 
-                className="footer-section"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                viewport={{ once: true }}
+              
+              <motion.img
+                src={heroImage}
+                alt="Education Hero"
+                className="relative w-96 h-96 lg:w-[580px] lg:h-[580px] "
+                
+                transition={{ 
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              
+
+              <motion.div
+                className="absolute top-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-full shadow-xl border border-white/20"
+                animate={{ y: [-10, 10, -10] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                whileHover={{ scale: 1.1, rotate: 10 }}
               >
-                <h3>Quick Links</h3>
-                <ul>
-                  <motion.li whileHover={{ x: 5, color: "rgb(151, 239, 239)" }}>About Us</motion.li>
-                  <motion.li whileHover={{ x: 5, color: "rgb(151, 239, 239)" }}>Features</motion.li>
-                  <motion.li whileHover={{ x: 5, color: "rgb(151, 239, 239)" }}>Pricing</motion.li>
-                  <motion.li whileHover={{ x: 5, color: "rgb(151, 239, 239)" }}>Contact</motion.li>
-                </ul>
+                <BookOpen className="w-6 h-6 text-blue-700" />
               </motion.div>
-              <motion.div 
-                className="footer-section"
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                viewport={{ once: true }}
+              
+              <motion.div
+                className="absolute bottom-8 left-4 bg-white/80 backdrop-blur-md p-3 rounded-full shadow-xl border border-white/20"
+                animate={{ y: [10, -10, 10] }}
+                transition={{ duration: 2.5, repeat: Infinity }}
+                whileHover={{ scale: 1.1, rotate: -10 }}
               >
-                <h3>Contact</h3>
-                <ul>
-                  <li>Email: info@edunexus.com</li>
-                  <li>Phone: +1 234 567 890</li>
-                  <li>Address: 123 Education St</li>
-                </ul>
+                <Users className="w-6 h-6 text-indigo-700" />
+              </motion.div>
+              
+              <motion.div
+                className="absolute top-1/2 left-0 bg-white/80 backdrop-blur-md p-3 rounded-full shadow-xl border border-white/20"
+                animate={{ x: [-5, 5, -5] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                whileHover={{ scale: 1.1, rotate: 15 }}
+              >
+                <Award className="w-6 h-6 text-slate-700" />
               </motion.div>
             </div>
-            <motion.div 
-              className="footer-bottom"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              <p>© 2026 EDUNEXUS. All rights reserved. Made with 💖 by Team EDUNEXUS</p>
-            </motion.div>
-          </motion.footer>
-        </section>
-      </div>
+          </motion.div>
+        </div>
+      </section>
+           <ServiceSection/>
+           <Footer />
+       
     </>
+    
   )
 }
-
-export default LandingPage

@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
-import LandingPage from './components/LandingPage/Landingpage'
+import LandingPage from './components/LandingPage/'
 import Login from './components/Login/Login'
 import StudentDashboard from './pages/studentDashboard'
 import TeacherDashboard from './pages/teacherDashboard'
 import AdminDashboard from './pages/AdminDashboard'
+
 
 
 function App() {

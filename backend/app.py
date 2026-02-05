@@ -4,38 +4,28 @@ import string
 from flask import Flask, session, request, jsonify
 from flask_cors import CORS
 from flask_wtf.csrf import generate_csrf
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
 from config import Config
 from models import db, User
-from config import Config
-from models import db, User
+from forms import LoginForm
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['DEBUG'] = False
 
+# Mail configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'sipunofficial382@gmail.com'
+app.config['MAIL_PASSWORD'] = 'tmee iuny zgsk ikgz'
+app.config['MAIL_DEFAULT_SENDER'] = 'sipunofficial382@gmail.com'
 
-users = [
-    {
-        "id": "1260",
-        "password": generate_password_hash("admin123"),
-        "role": "admin"
-    },
-    {
-        "id": "23CSE346",
-        "password": generate_password_hash("student123"),
-        "role": "student"
-    },
-    {
-        "id": "345",
-        "password": generate_password_hash("faculty123"),
-        "role": "faculty"
-    }
-] 
-
-# Initialize database
+# Initialize database and mail
 db.init_app(app)
+mail = Mail(app)
 
-CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*"}})
+CORS(app, supports_credentials=True, origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176"], allow_headers=["Content-Type", "X-CSRFToken"], methods=["GET", "POST", "OPTIONS"])
 
 # Create database tables
 with app.app_context():
@@ -74,19 +64,79 @@ def verify_captcha():
 
 
 
+@app.route('/api/users', methods=['POST'])
+def create_user():
+    try:
+        data = request.get_json() or {}
+        user_id = data.get('id')
+        name = data.get('name')
+        email = data.get('email')
+        password = data.get('password')
+        role = data.get('role')
+        department = data.get('dept') or data.get('department') or 'N/A'
+
+        if not all([user_id, name, email, password, role]):
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+        if User.query.filter_by(id=user_id).first():
+            return jsonify({"success": False, "message": "User ID already exists"}), 409
+
+        user = User(id=user_id, name=name, email=email, password=password, role=role, department=department)
+        db.session.add(user)
+        db.session.commit()
+        
+        # Send email
+        try:
+            msg = Message('Your Account Has Been Created', recipients=[email])
+            msg.body = f'''Hello {name},
+
+Your account has been successfully created!
+
+Your Login Credentials:
+ID: {user_id}
+Password: {password}
+Role: {role}
+Department: {department}
+
+Please keep this information secure.
+
+Best regards,
+EDUNEXUS Team'''
+            mail.send(msg)
+        except Exception as mail_error:
+            print(f"Email error: {str(mail_error)}")
+        
+        return jsonify({"success": True, "message": "User created", "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role, "department": user.department}}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating user: {str(e)}")
+        return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
+
+
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
     id = data.get('id')
     password = data.get('password')
+    captcha = data.get('captcha')
+    csrf_token = request.headers.get('X-CSRFToken', data.get('csrf_token'))
     
+    # Validate CSRF token
+    if not csrf_token:
+        return jsonify({"success": False, "message": "CSRF token missing"}), 400
     
-    user = next((u for u in users if u["id"] == id), None)
+    # Verify captcha
+    expected_captcha = session.get("captcha", "").upper()
+    if captcha.upper() != expected_captcha:
+        return jsonify({"success": False, "message": "Captcha does not match"}), 400
+    
+    # Query user from database
+    user = User.query.filter_by(id=id).first()
     
     if not user:
         return jsonify({"success": False, "message": "ID not found"}), 401
     
-    if not check_password_hash(user["password"], password):
+    if user.password != password:
         return jsonify({"success": False, "message": "Wrong password"}), 401
     
     session.pop("captcha", None)
@@ -97,8 +147,8 @@ def login():
         "success": True,
         "message": "Login successful",
         "id": id,
-        "role": user["role"],
-        "dashboard": '/admin' if user["role"] == 'admin' else '/student' if user["role"] == 'student' else '/teacher'
+        "role": user.role,
+        "dashboard": '/admin' if user.role == 'admin' else '/student' if user.role == 'student' else '/teacher' 
     }), 200
     
 @app.route('/api/logout', methods=['POST'])
@@ -108,4 +158,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)  
+    app.run(debug=True)

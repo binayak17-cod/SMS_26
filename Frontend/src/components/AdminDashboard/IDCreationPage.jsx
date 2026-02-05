@@ -29,17 +29,29 @@ const IDCreationPage = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Simulate API call
-        setTimeout(() => {
+        const payload = { ...formData, role };
+        try {
+            const res = await fetch('http://localhost:5000/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.message || 'Failed to create user');
+                return;
+            }
             setCreatedUser({ ...formData, role });
             setShowToast(true);
             setTimeout(() => setShowToast(false), 3000);
-            // Reset form but keep last created user visible
             setFormData({ name: '', email: '', id: '', class: '', dept: '', password: '' });
-        }, 500);
-    };
+        } catch (error) {
+            console.error('Create user error', error);
+            alert('Network error while creating user');
+        }
+    }; 
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(formData.password);
@@ -68,7 +80,7 @@ const IDCreationPage = () => {
                             required
                             value={formData.name}
                             onChange={handleChange}
-                            placeholder="e.g. John Doe"
+                            
                         />
 
                         <Input
@@ -78,7 +90,7 @@ const IDCreationPage = () => {
                             required
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="e.g. john@school.com"
+                            
                         />
 
                         {role === 'student' ? (
@@ -89,17 +101,23 @@ const IDCreationPage = () => {
                                     required
                                     value={formData.id}
                                     onChange={handleChange}
-                                    placeholder="e.g. 2023001"
+                                   
                                 />
                                 <Select
-                                    label="Class"
-                                    name="class"
-                                    value={formData.class}
+                                    label="Department"
+                                    name="dept"
+                                    value={formData.dept}
                                     onChange={handleChange}
                                     options={[
-                                        { value: '', label: 'Select Class' },
-                                        { value: '10A', label: '10A' },
-                                        { value: '9B', label: '9B' },
+                                        { value: '', label: 'Select Department' },
+                                        { value: 'CSE', label: 'CSE' },
+                                        { value: 'BSH', label: 'BSH' },
+                                        { value: 'ECE', label: 'ECE' },
+                                        { value: 'MECH', label: 'MECHANICAL' },
+                                        { value: 'CIVIL', label: 'CIVIL' },
+                                        { value: 'EEE', label: 'EEE' },
+                                        { value: 'CHEM', label: 'CHEMICAL' },
+                                        { value: 'BIOTECH', label: 'BIOTECH' },
                                     ]}
                                 />
                             </>
@@ -111,7 +129,7 @@ const IDCreationPage = () => {
                                     required
                                     value={formData.id}
                                     onChange={handleChange}
-                                    placeholder="e.g. T-101"
+                                    
                                 />
                                 <Select
                                     label="Department"
@@ -120,9 +138,15 @@ const IDCreationPage = () => {
                                     onChange={handleChange}
                                     options={[
                                         { value: '', label: 'Select Department' },
-                                        { value: 'Science', label: 'Science' },
-                                        { value: 'Math', label: 'Mathematics' },
-                                        { value: 'English', label: 'English' },
+                                        { value: 'CSE', label: 'CSE' },
+                                        { value: 'BSH', label: 'BSH' },
+                                        { value: 'ECE', label: 'ECE' },
+                                        { value: 'MECH', label: 'MECHANICAL' },
+                                        { value: 'CIVIL', label: 'CIVIL' },
+                                        { value: 'EEE', label: 'EEE' },
+                                        { value: 'CHEM', label: 'CHEMICAL' },
+                                        { value: 'BIOTECH', label: 'BIOTECH' },
+
                                     ]}
                                 />
                             </>
@@ -137,10 +161,10 @@ const IDCreationPage = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     style={{ flex: 1 }}
-                                    placeholder="Leave empty to auto-generate or type custom"
+                                    
                                 />
-                                <Button onClick={generatePassword} variant="secondary">Generate</Button>
-                                <Button onClick={copyToClipboard} variant="ghost" title="Copy">📋</Button>
+                                <Button type="button" onClick={generatePassword} variant="secondary">Generate</Button>
+                                <Button type="button" onClick={copyToClipboard} variant="ghost" title="Copy">📋</Button> 
                             </div>
                         </div>
 
@@ -186,7 +210,7 @@ const IDCreationPage = () => {
                                     </div>
 
                                     <div style={{ marginTop: '16px' }}>
-                                        <Button variant="secondary" style={{ width: '100%' }}>Print ID Card</Button>
+                                        <Button type="button" variant="secondary" style={{ width: '100%' }}>Print ID Card</Button>
                                     </div>
                                 </div>
                             </Card>
