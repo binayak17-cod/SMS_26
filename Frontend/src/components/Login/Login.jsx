@@ -69,7 +69,6 @@ export default function Login() {
         throw new Error("Captcha verification failed");
       }
 
-      // Get CSRF token from captcha response
       const token = captchaResponse.data.temp_token;
       setCsrfToken(token);
 

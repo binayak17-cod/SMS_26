@@ -151,6 +151,29 @@ def login():
         "dashboard": '/admin' if user.role == 'admin' else '/student' if user.role == 'student' else '/teacher' 
     }), 200
     
+    
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    try:
+        role = request.args.get('role')
+        if role:
+            users = User.query.filter_by(role=role).all()
+        else:
+            users = User.query.all()
+        
+        return jsonify({
+            "success": True,
+            "users": [
+                {"id": user.id, "name": user.name, "email": user.email, "role": user.role, "department": user.department}
+                for user in users
+            ]
+        }), 200
+    except Exception as e:
+        print(f"Error fetching users: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+        
+    
+    
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()

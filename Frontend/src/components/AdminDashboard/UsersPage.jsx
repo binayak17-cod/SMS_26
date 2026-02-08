@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Table, Button, Input, Select, Badge } from './AdminComponents';
 
 const UsersPage = () => {
@@ -6,17 +6,8 @@ const UsersPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterClass, setFilterClass] = useState('');
 
-    // Dummy Data
-    const students = [
-        { id: 'S001', name: 'Alice Smith', class: '10A', roll: 12, email: 'alice@school.com', status: 'Active' },
-        { id: 'S002', name: 'Bob Johnson', class: '10A', roll: 14, email: 'bob@school.com', status: 'Inactive' },
-        { id: 'S003', name: 'Charlie Brown', class: '9B', roll: 5, email: 'charlie@school.com', status: 'Active' },
-    ];
-
-    const teachers = [
-        { id: 'T001', name: 'Mr. Anderson', dept: 'Science', email: 'anderson@school.com', status: 'Active' },
-        { id: 'T002', name: 'Ms. Davis', dept: 'Math', email: 'davis@school.com', status: 'On Leave' },
-    ];
+    const [students, setStudents] = useState([]);
+    const [teachers, setTeachers] = useState([]);
 
     const filteredStudents = students.filter(s =>
         s.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -26,6 +17,17 @@ const UsersPage = () => {
     const filteredTeachers = teachers.filter(t =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+useEffect(() => {
+    fetch('http://localhost:5000/api/users?role=student')
+        .then(res => res.json())
+        .then(data => setStudents(data.users || []))
+        .catch(err => console.error('Error fetching students:', err));
+
+    fetch('http://localhost:5000/api/users?role=teacher')
+        .then(res => res.json())
+        .then(data => setTeachers(data.users || []))
+        .catch(err => console.error('Error fetching teachers:', err));
+}, []);
 
     return (
         <div className="users-page">
@@ -85,17 +87,13 @@ const UsersPage = () => {
                 </div>
 
                 {activeTab === 'student' ? (
-                    <Table headers={['ID', 'Name', 'Class', 'Roll No', 'Email', 'Status', 'Actions']}>
+                    <Table headers={['ID', 'Name', 'Department', 'Email', 'Actions']}>
                         {filteredStudents.map(student => (
                             <tr key={student.id}>
                                 <td>{student.id}</td>
                                 <td>{student.name}</td>
-                                <td>{student.class}</td>
-                                <td>{student.roll}</td>
+                                <td>{student.department}</td>
                                 <td>{student.email}</td>
-                                <td>
-                                    <Badge type={student.status === 'Active' ? 'success' : 'neutral'}>{student.status}</Badge>
-                                </td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <Button variant="ghost" className="btn-icon">✏️</Button>
@@ -106,16 +104,13 @@ const UsersPage = () => {
                         ))}
                     </Table>
                 ) : (
-                    <Table headers={['ID', 'Name', 'Department', 'Email', 'Status', 'Actions']}>
+                    <Table headers={['ID', 'Name', 'Department', 'Email', 'Actions']}>
                         {filteredTeachers.map(teacher => (
                             <tr key={teacher.id}>
                                 <td>{teacher.id}</td>
                                 <td>{teacher.name}</td>
-                                <td>{teacher.dept}</td>
+                                <td>{teacher.department}</td>
                                 <td>{teacher.email}</td>
-                                <td>
-                                    <Badge type={teacher.status === 'Active' ? 'success' : 'warning'}>{teacher.status}</Badge>
-                                </td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <Button variant="ghost" className="btn-icon">✏️</Button>
