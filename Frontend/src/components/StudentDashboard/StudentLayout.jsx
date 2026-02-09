@@ -3,7 +3,7 @@ import { color, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import '../../App.css'
 
-const StudentLayout = ({ children }) => {
+const StudentLayout = ({ children, studentName = 'Student' }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
 
@@ -34,17 +34,6 @@ const StudentLayout = ({ children }) => {
             </Link>
           ))}
         </nav>
-        <motion.div className="invite">
-          <div className="invite-illustration">🎓</div>
-          <motion.button
-            className="invite-btn"
-            onClick={() => alert('Explore resources coming soon!')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Explore Resources
-          </motion.button>
-        </motion.div>
       </motion.aside>
 
       <motion.main className="maincol">
@@ -64,7 +53,7 @@ const StudentLayout = ({ children }) => {
             >
               {activeMenu}
             </motion.h2>
-            <div className="subtext">Welcome back, Student</div>
+            <div className="subtext">Welcome back, {studentName}</div>
           </motion.div>
           <div className="top-right">
             <motion.div
@@ -92,8 +81,8 @@ const StudentLayout = ({ children }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <motion.div className="avatar">ST</motion.div>
-                <div className="profile-name">Student Name</div>
+                <motion.div className="avatar">{studentName.substring(0, 2).toUpperCase()}</motion.div>
+                <div className="profile-name">{studentName}</div>
               </motion.div>
             </div>
           </div>

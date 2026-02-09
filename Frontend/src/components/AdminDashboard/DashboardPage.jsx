@@ -8,6 +8,30 @@ import './DashboardPage.css';
 const DashboardPage = () => {
     const mountRef = useRef(null);
     const navigate = useNavigate();
+    const [kpiData, setKpiData] = React.useState([
+        { title: 'Total Students', value: '0', change: '+0%', color: 'primary' },
+        { title: 'Total Teachers', value: '0', change: '+0%', color: 'success' },
+        { title: 'Overall Attendance', value: '0%', change: '0%', color: 'warning' },
+        { title: 'Active Classes', value: '0', change: '+0%', color: 'info' },
+    ]);
+
+    useEffect(() => {
+        // Fetch dashboard stats
+        fetch('http://localhost:5000/api/dashboard/stats')
+            .then(res => res.json())
+            .then(data => {
+                console.log('Dashboard stats:', data);
+                if (data.success) {
+                    setKpiData([
+                        { title: 'Total Students', value: data.totalStudents || '0', change: '+12%', color: 'primary' },
+                        { title: 'Total Teachers', value: data.totalTeachers || '0', change: '+2%', color: 'success' },
+                        { title: 'Overall Attendance', value: data.overallAttendance || '0%', change: '0%', color: 'warning' },
+                        { title: 'Active Classes', value: data.activeClasses || '0', change: '+5%', color: 'info' },
+                    ]);
+                }
+            })
+            .catch(err => console.error('Error fetching stats:', err));
+    }, []);
 
     // Three.js Background Effect
     useEffect(() => {
@@ -91,12 +115,7 @@ const DashboardPage = () => {
         };
     }, []);
 
-    const kpiData = [
-        { title: 'Total Students', value: '1,248', change: '+12%', color: 'primary' },
-        { title: 'Total Teachers', value: '84', change: '+2%', color: 'success' },
-        { title: 'Total Employees', value: '24', change: '0%', color: 'warning' },
-        { title: 'Active Classes', value: '42', change: '+5%', color: 'info' },
-    ];
+
 
     const recentActivity = [
         { id: 1, user: 'Sarah Connor', action: 'Created new Student ID', time: '10 mins ago' },

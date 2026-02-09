@@ -36,7 +36,6 @@ export const LandingPage = () => {
           }}></div>
         </motion.div>
         
-        {/* Animated Grid Dots */}
         <motion.div className="absolute inset-0 pointer-events-none">
           {[...Array(30)].map((_, i) => (
             <motion.div

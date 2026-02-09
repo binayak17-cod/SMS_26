@@ -9,7 +9,8 @@ const IDCreationPage = () => {
         email: '',
         id: '',
         class: '',
-        dept: '',
+        department: '',
+        sec: '',
         password: ''
     });
     const [showToast, setShowToast] = useState(false);
@@ -46,7 +47,7 @@ const IDCreationPage = () => {
             setCreatedUser({ ...formData, role });
             setShowToast(true);
             setTimeout(() => setShowToast(false), 3000);
-            setFormData({ name: '', email: '', id: '', class: '', dept: '', password: '' });
+            setFormData({ name: '', email: '', id: '', class: '', department: '', sec: '', password: '' });
         } catch (error) {
             console.error('Create user error', error);
             alert('Network error while creating user');
@@ -105,8 +106,8 @@ const IDCreationPage = () => {
                                 />
                                 <Select
                                     label="Department"
-                                    name="dept"
-                                    value={formData.dept}
+                                    name="department"
+                                    value={formData.department}
                                     onChange={handleChange}
                                     options={[
                                         { value: '', label: 'Select Department' },
@@ -118,6 +119,18 @@ const IDCreationPage = () => {
                                         { value: 'EEE', label: 'EEE' },
                                         { value: 'CHEM', label: 'CHEMICAL' },
                                         { value: 'BIOTECH', label: 'BIOTECH' },
+                                    ]}
+                                />
+                                <Select
+                                    label="Section"
+                                    name="sec"
+                                    value={formData.sec}
+                                    onChange={handleChange}
+                                    options={[
+                                        { value: '', label: 'Select Section' },
+                                        { value: 'A', label: 'A' },
+                                        { value: 'B', label: 'B' },
+                                        { value: 'C', label: 'C' },
                                     ]}
                                 />
                             </>
@@ -133,8 +146,8 @@ const IDCreationPage = () => {
                                 />
                                 <Select
                                     label="Department"
-                                    name="dept"
-                                    value={formData.dept}
+                                    name="department"
+                                    value={formData.department}
                                     onChange={handleChange}
                                     options={[
                                         { value: '', label: 'Select Department' },
@@ -204,7 +217,7 @@ const IDCreationPage = () => {
                                         {createdUser.role === 'student' ? (
                                             <p><strong>Class:</strong> {createdUser.class}</p>
                                         ) : (
-                                            <p><strong>Dept:</strong> {createdUser.dept}</p>
+                                            <p><strong>Dept:</strong> {createdUser.department}</p>
                                         )}
                                         <p><strong>Password:</strong> <span style={{ fontFamily: 'monospace', background: '#e2e8f0', padding: '2px 4px', borderRadius: '4px' }}>{createdUser.password}</span></p>
                                     </div>

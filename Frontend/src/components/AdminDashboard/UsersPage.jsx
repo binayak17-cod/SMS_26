@@ -78,8 +78,9 @@ useEffect(() => {
                             onChange={(e) => setFilterClass(e.target.value)}
                             options={[
                                 { value: '', label: 'All Classes' },
-                                { value: '10A', label: '10A' },
-                                { value: '9B', label: '9B' },
+                                { value: 'A', label: 'A' },
+                                { value: 'B', label: 'B' },
+                                { value: 'C', label: 'C' },
                             ]}
                             style={{ width: '150px' }}
                         />

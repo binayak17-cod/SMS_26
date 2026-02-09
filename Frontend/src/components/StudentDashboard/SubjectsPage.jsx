@@ -29,7 +29,7 @@ export default function SubjectsPage() {
       name: 'Discrete Mathematics', 
       code: 'MA210', 
       credits: 3, 
-      instructor: 'Dr. Boina AAnil Kumar',
+      instructor: 'Dr. Boina Anil Kumar',
       time: 'MW 1:00-2:30 PM',
       room: 'CSB-5'
     },
@@ -51,10 +51,12 @@ export default function SubjectsPage() {
 
   return (
     <StudentLayout>
-      <div style={{ padding: '20px', background: 'linear-gradient(135deg, #fcf1f1 0%, #e5eaf1 100%)', minHeight: '100vh' }}>
-        <div style={{ marginBottom: '30px' }}>
-          <h2 style={{ margin: '0 0 5px 0', fontSize: '28px', fontWeight: '700', color: '#2d3748', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>Current Subjects</h2>
-          <p style={{ margin: 0, color: '#4a5568', fontSize: '15px', fontWeight: '500' }}>Spring 2024 • {subjects.length} subjects • {subjects.reduce((sum, s) => sum + s.credits, 0)} total credits</p>
+      <div style={{ padding: '30px', background: '#f8f9fa', minHeight: '100vh' }}>
+        <div style={{ marginBottom: '25px' }}>
+          <h2 style={{ margin: '0 0 5px 0', fontSize: '28px', fontWeight: '600', color: '#2b3674' }}>My Subjects</h2>
+          <p style={{ margin: 0, color: '#8f9bba', fontSize: '14px' }}>
+            {subjects.length} subjects • {subjects.reduce((sum, s) => sum + s.credits, 0)} credits
+          </p>
         </div>
 
         <div style={{ marginBottom: '25px' }}>
@@ -64,102 +66,85 @@ export default function SubjectsPage() {
             value={searchCourse}
             onChange={(e) => setSearchCourse(e.target.value)}
             style={{
-              padding: '12px 18px',
-              border: 'none',
-              borderRadius: '25px',
+              padding: '12px 16px',
+              border: '1px solid #e0e5f2',
+              borderRadius: '8px',
               fontSize: '14px',
-              width: '320px',
-              maxWidth: '100%',
-              background: 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-              color: '#2d3748',
-              fontWeight: '500'
+              width: '100%',
+              maxWidth: '400px',
+              background: 'white',
+              color: '#2b3674',
+              outline: 'none'
             }}
           />
         </div>
 
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
           gap: '20px' 
         }}>
           {filteredSubjects.map(subject => (
             <div key={subject.id} style={{
-              background: 'linear-gradient(135deg, #bcbfca 0%, #5b4471 100%)',
-              border: 'none',
+              background: 'white',
+              border: '1px solid #e0e5f2',
               borderRadius: '12px',
-              padding: '24px',
-              color: 'white',
-              boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              padding: '20px',
+              transition: 'box-shadow 0.2s',
               cursor: 'pointer'
             }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'translateY(-4px)'
-              e.target.style.boxShadow = '0 12px 40px rgba(102, 126, 234, 0.4)'
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'translateY(0)'
-              e.target.style.boxShadow = '0 8px 32px rgba(102, 126, 234, 0.3)'
-            }}
+            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'}
+            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
             >
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'flex-start',
-                marginBottom: '16px'
-              }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                 <div>
-                  <h3 style={{ 
-                    margin: '0 0 8px 0', 
-                    fontSize: '20px', 
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '600', color: '#2b3674' }}>
                     {subject.name}
                   </h3>
                   <span style={{
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    padding: '4px 12px',
-                    borderRadius: '20px',
+                    display: 'inline-block',
+                    background: '#f4f7fe',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
                     fontSize: '12px',
-                    fontWeight: '500',
-                    color: 'white',
-                    backdropFilter: 'blur(10px)'
+                    fontWeight: '600',
+                    color: '#4318ff'
                   }}>
                     {subject.code}
                   </span>
                 </div>
                 <span style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: '#f4f7fe',
                   padding: '6px 12px',
-                  borderRadius: '20px',
+                  borderRadius: '6px',
                   fontSize: '13px',
-                  color: 'white',
+                  color: '#2b3674',
                   fontWeight: '600'
                 }}>
-                  {subject.credits} credits
+                  {subject.credits} CR
                 </span>
               </div>
-              
-              <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.9)', lineHeight: '1.7' }}>
-                <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ marginRight: '8px', opacity: 0.4 }}>👨‍🏫</span>
-                  <span><strong>Instructor:</strong> {subject.instructor}</span>
+
+              <div style={{ fontSize: '13px', color: '#2b3674', lineHeight: '1.8' }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ color: '#8f9bba', fontWeight: '500' }}>Instructor:</span> {subject.instructor}
                 </div>
-                <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ marginRight: '8px', opacity: 0.4 }}>⏰</span>
-                  <span><strong>Schedule:</strong> {subject.time}</span>
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ color: '#8f9bba', fontWeight: '500' }}>Schedule:</span> {subject.time}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <span style={{ marginRight: '8px', opacity: 0.4}}>📍</span>
-                  <span><strong>Room:</strong> {subject.room}</span>
+                <div>
+                  <span style={{ color: '#8f9bba', fontWeight: '500' }}>Room:</span> {subject.room}
                 </div>
               </div>
             </div>
           ))}
         </div>
+
+        {filteredSubjects.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#8f9bba' }}>
+            <div style={{ fontSize: '16px', fontWeight: '500' }}>No subjects found</div>
+          </div>
+        )}
       </div>
     </StudentLayout>
   )

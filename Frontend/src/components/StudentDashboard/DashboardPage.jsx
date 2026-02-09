@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import StudentLayout from './StudentLayout'
 import '../../App.css'
@@ -20,13 +20,56 @@ const StatCard = ({ title, value, icon, color }) => {
   )
 }
 
-export default function StudentDashboardPage() {
-  const courses = [
-    { id: 1, name: 'Data Structures', code: 'CS201', credits: 4, progress: 75 },
-    { id: 2, name: 'Operating Systems', code: 'CS301', credits: 3, progress: 50 },
-    { id: 3, name: 'Discrete Mathematics', code: 'MA210', credits: 3, progress: 90 },
-    { id: 4, name: 'Database Systems', code: 'CS302', credits: 3, progress: 60 },
-  ]
+const StudentDashboard = () => {
+  const [attendanceStats, setAttendanceStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [studentId, setStudentId] = useState(null);
+  const [studentName, setStudentName] = useState('Student');
+  
+  useEffect(() => {
+    const id = localStorage.getItem('userId');
+    console.log('Student ID from localStorage:', id);
+    setStudentId(id);
+    if (id) {
+      fetchAttendanceStats(id);
+    } else {
+      console.log('No student ID found in localStorage');
+    }
+  }, []);
+
+const fetchAttendanceStats = async (id) => {
+  console.log('Fetching attendance for student:', id);
+  setLoading(true);
+  try {
+    const res = await fetch(`http://localhost:5000/api/student/attendance?studentId=${id}`);
+    console.log('Response status:', res.status);
+    
+    if (!res.ok) {
+      throw new Error('Failed to fetch attendance');
+    }
+    
+    const data = await res.json();
+    console.log('Full API Response:', data); // ADD THIS
+    console.log('Statistics object:', data.statistics); // ADD THIS
+    console.log('Overall stats:', data.statistics?.overall); // ADD THIS
+    
+    setAttendanceStats(data.statistics);
+    if (data.student?.name) {
+      setStudentName(data.student.name);
+    }
+  } catch (err) {
+    console.error('Error fetching attendance:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const getAttendanceColor = (percentage) => {
+    if (percentage >= 90) return '#10b981'; // green
+    if (percentage >= 75) return '#3b82f6'; // blue
+    if (percentage >= 60) return '#f59e0b'; // orange
+    return '#ef4444'; 
+  }
 
   const currentDate = new Date()
   const currentMonth = currentDate.getMonth()
@@ -44,16 +87,8 @@ export default function StudentDashboardPage() {
     calendarDays.push(day)
   }
 
-  const weeklyTimetable = [
-    { day: 'Mon', subject: 'Data Structures', time: '09:00', room: 'A-201', status: 'Upcoming' },
-    { day: 'Tue', subject: 'Database Systems', time: '10:00', room: 'Lab-3', status: 'Completed' },
-    { day: 'Wed', subject: 'Operating Systems', time: '09:00', room: 'B-105', status: 'Upcoming' },
-    { day: 'Thu', subject: 'Discrete Math', time: '11:20', room: 'C-210', status: 'Upcoming' },
-    { day: 'Fri', subject: 'DS Tutorial', time: '09:00', room: 'A-203', status: 'Cancelled' }
-  ]
-
   return (
-    <StudentLayout>
+    <StudentLayout studentName={studentName}>
       <motion.div
         className="dashboard-content"
         initial={{ opacity: 0 }}
@@ -63,7 +98,6 @@ export default function StudentDashboardPage() {
         {/* Left Main Column */}
         <div className="left-main-col">
 
-          
           <motion.div
             className="welcome-banner"
             initial={{ opacity: 0, y: 20 }}
@@ -72,90 +106,146 @@ export default function StudentDashboardPage() {
           >
             <div className="banner-content">
               <h4>April 24, 2026</h4>
-              <h1>Good Morning, Student!</h1>
+              <h1>Good Morning, {studentName}!</h1>
               <p>You have 2 assignments due this week and 3 upcoming classes today. Keep up the great work!</p>
               <button className="banner-btn">Check Assignments</button>
             </div>
             <div style={{ fontSize: '120px', lineHeight: 1, opacity: 0.4}}>🎓</div>
           </motion.div>
 
+          {/* Attendance Overview */}
           <div className="card-section">
             <div className="section-title">Attendance Overview</div>
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '20px 0', flexWrap: 'wrap', gap: '20px' }}>
+            
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <p style={{ color: '#a3aed0' }}>Loading attendance...</p>
+              </div>
+            ) : !attendanceStats || attendanceStats.overall.total === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                <p>No attendance records found</p>
+                <p style={{ fontSize: '12px', marginTop: '10px' }}>Debug: {JSON.stringify(attendanceStats)}</p>
+              </div>
+            ) : (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-around', 
+                alignItems: 'center', 
+                padding: '20px 0', 
+                flexWrap: 'wrap', 
+                gap: '30px' 
+              }}>
+                {/* Theory Attendance */}
+                {attendanceStats.theory.total > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{
+                      width: '140px',
+                      height: '140px',
+                      borderRadius: '50%',
+                      background: `conic-gradient(${getAttendanceColor(attendanceStats.theory.percentage)} 0% ${attendanceStats.theory.percentage}%, #f4f7fe ${attendanceStats.theory.percentage}% 100%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      marginBottom: '10px'
+                    }}>
+                      <div style={{ 
+                        background: 'white', 
+                        width: '110px', 
+                        height: '110px', 
+                        borderRadius: '50%', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center' 
+                      }}>
+                        <span style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
+                          {attendanceStats.theory.percentage}%
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>Theory</div>
+                    <div style={{ fontSize: '13px', color: '#a3aed0' }}>
+                      {attendanceStats.theory.present}/{attendanceStats.theory.total}
+                    </div>
+                  </div>
+                )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'conic-gradient(#3b82f6 0% 85%, #bfcbe7 85% 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  marginBottom: '10px'
-                }}>
-                  <div style={{ background: 'white', width: '90px', height: '90px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#384557' }}>80%</span>
+                {/* Lab Attendance */}
+                {attendanceStats.lab.total > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{
+                      width: '140px',
+                      height: '140px',
+                      borderRadius: '50%',
+                      background: `conic-gradient(${getAttendanceColor(attendanceStats.lab.percentage)} 0% ${attendanceStats.lab.percentage}%, #f4f7fe ${attendanceStats.lab.percentage}% 100%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      marginBottom: '10px'
+                    }}>
+                      <div style={{ 
+                        background: 'white', 
+                        width: '110px', 
+                        height: '110px', 
+                        borderRadius: '50%', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center' 
+                      }}>
+                        <span style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
+                          {attendanceStats.lab.percentage}%
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>Lab</div>
+                    <div style={{ fontSize: '13px', color: '#a3aed0' }}>
+                      {attendanceStats.lab.present}/{attendanceStats.lab.total}
+                    </div>
+                  </div>
+                )}
+
+                {/* Overall Attendance */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{
+                    width: '140px',
+                    height: '140px',
+                    borderRadius: '50%',
+                    background: `conic-gradient(${getAttendanceColor(attendanceStats.overall.percentage)} 0% ${attendanceStats.overall.percentage}%, #f4f7fe ${attendanceStats.overall.percentage}% 100%)`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    marginBottom: '10px'
+                  }}>
+                    <div style={{ 
+                      background: 'white', 
+                      width: '110px', 
+                      height: '110px', 
+                      borderRadius: '50%', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center' 
+                    }}>
+                      <span style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937' }}>
+                        {attendanceStats.overall.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>Overall</div>
+                  <div style={{ fontSize: '13px', color: '#a3aed0' }}>
+                    {attendanceStats.overall.present}/{attendanceStats.overall.total}
                   </div>
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>Class Attendance</div>
-                <div style={{ fontSize: '12px', color: '#a3aed0' }}>34/40</div>
               </div>
-
-              {/* Lab Attendance */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'conic-gradient(#10b981 0% 92%, #f4f7fe 92% 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  marginBottom: '10px'
-                }}>
-                  <div style={{ background: 'white', width: '90px', height: '90px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937' }}>92%</span>
-                  </div>
-                </div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>Lab Attendance</div>
-                <div style={{ fontSize: '12px', color: '#a3aed0' }}>23/25</div>
-              </div>
-
-              {/* Overall Attendance */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'conic-gradient(#f59e0b 0% 88%, #f4f7fe 88% 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  marginBottom: '10px'
-                }}>
-                  <div style={{ background: 'white', width: '90px', height: '90px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '20px', fontWeight: '700', color: '#1f2937' }}>88%</span>
-                  </div>
-                </div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>Overall Attendance</div>
-                <div style={{ fontSize: '12px', color: '#a3aed0' }}>57/65</div>
-              </div>
-
-            </div>
+            )}
           </div>
-
-          {/* Timetable Section */}
 
         </div>
 
         {/* Right Panel Column */}
         <div className="right-panel-col">
 
-          {/* Full Calendar Widget */}
           {/* Full Calendar Widget */}
           <div className="calendar-widget" style={{ padding: '20px' }}>
             <div className="calendar-header" style={{ marginBottom: '10px' }}>
@@ -165,7 +255,7 @@ export default function StudentDashboardPage() {
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
                 <div key={i} style={{
                   fontSize: '11px',
-                  color: i === 0 ? '#dc2626' : '#a3aed0', // Sunday Red
+                  color: i === 0 ? '#dc2626' : '#a3aed0',
                   textAlign: 'center',
                   fontWeight: '600'
                 }}>
@@ -201,9 +291,8 @@ export default function StudentDashboardPage() {
             </div>
           </div>
 
-          {/* Ready For Training / Extra Widget */}
-
-          <div className="applicants-widget">
+          {/* Today's Routine Widget */}
+          <div className="applicants-widget" style={{ marginTop: '30px' }}>
             <div className="widget-header">
               <span>Today's Routine</span>
               <span style={{ fontSize: '12px', color: '#a3aed0' }}>Mon</span>
@@ -253,3 +342,5 @@ export default function StudentDashboardPage() {
     </StudentLayout>
   )
 }
+
+export default StudentDashboard
