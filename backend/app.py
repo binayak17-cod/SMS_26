@@ -347,7 +347,7 @@ def get_student_attendance():
         if not student_id:
             return jsonify({'error': 'Student ID is required'}), 400
         
-        # Get student details
+      
         student = db.session.query(User, Student).join(
             Student, User.id == Student.id
         ).filter(User.id == student_id).first()
@@ -358,7 +358,6 @@ def get_student_attendance():
         user, student_info = student
         class_name = f"{student_info.department}{student_info.sec}"
         
-        # Get all attendance records for this student
         attendance_records = Attendance.query.filter_by(
             student_id=student_id
         ).order_by(Attendance.date.desc()).all()
