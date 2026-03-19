@@ -13,7 +13,7 @@ const AdminLayout = ({ children }) => {
         { name: 'Attendance', path: '/admin/attendance', icon: '📅' },
         { name: 'Marks/Grades', path: '/admin/marks', icon: '📝' },
         { name: 'ID Creation', path: '/admin/id-creation', icon: '🆔' },
-        { name: 'Batch Assignment', path: '/admin/role-assignment', icon: '🔑' },
+        { name: 'Batch Assignment', path: '/admin/batch-assignment', icon: '🔑' },
         { name: 'Analytics', path: '/admin/analytics', icon: '📈' },
         { name: 'Settings', path: '/admin/settings', icon: '⚙️' },
     ];

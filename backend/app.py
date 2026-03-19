@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask_wtf.csrf import generate_csrf
 from flask_mail import Mail, Message
 from config import Config
-from models import db, User, Student, Teacher, Attendance
+from models import db, User, Student, Teacher, Attendance, TeacherAssignment, Result
 from forms import LoginForm
 from datetime import datetime
 
@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.config['DEBUG'] = False
 
-# Mail configuration
+
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -22,7 +22,7 @@ app.config['MAIL_USERNAME'] = 'sipunofficial382@gmail.com'
 app.config['MAIL_PASSWORD'] = 'tmee iuny zgsk ikgz'
 app.config['MAIL_DEFAULT_SENDER'] = 'sipunofficial382@gmail.com'
 
-# Initialize database and mail
+
 db.init_app(app)
 mail = Mail(app)
 
@@ -218,19 +218,76 @@ def get_users():
         return jsonify({"success": False, "message": str(e)}), 500
         
 
-# GET attendance records
+
+@app.route('/api/attendance', methods=['POST'])
+def save_attendance():
+    try:
+        data = request.get_json()
+
+        student_id = data.get('studentId')
+        date_str = data.get('date')
+        class_name = data.get('class')
+        subject = data.get('subject')
+        session_type = data.get('session_type')
+        status = data.get('status')
+        remarks = data.get('remarks', '')
+
+        if not all([student_id, date_str, class_name, subject, session_type, status]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        attendance_record = Attendance.query.filter_by(
+            student_id=student_id,
+            date=date_obj,
+            class_name=class_name,
+            subject=subject,
+            session_type=session_type
+        ).first()
+
+        if attendance_record:
+            attendance_record.status = status
+            attendance_record.remarks = remarks
+            message = 'Attendance updated successfully'
+        else:
+            new_attendance = Attendance(
+                student_id=student_id,
+                date=date_obj,
+                class_name=class_name,
+                subject=subject,
+                session_type=session_type,
+                status=status,
+                remarks=remarks
+            )
+
+            db.session.add(new_attendance)
+            message = 'Attendance recorded successfully'
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': message
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f'Error saving attendance: {e}')
+        return jsonify({'error': 'Server error', 'message': str(e)}), 500
+
 @app.route('/api/attendance', methods=['GET'])
 def get_attendance():
     try:
         class_name = request.args.get('class')
         date_str = request.args.get('date')
         session_type = request.args.get('session_type')
-        
-        if not class_name or not date_str or not session_type:
-            return jsonify({'error': 'Class, date and session_type are required'}), 400
-        
+        subject = request.args.get('subject')
+
+        if not all([class_name, date_str, session_type, subject]):
+            return jsonify({'error': 'Class, date, subject and session_type are required'}), 400
+
         date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-        
+
         students_query = db.session.query(
             User.id,
             User.name,
@@ -241,22 +298,24 @@ def get_attendance():
         ).filter(
             User.role == 'student'
         ).all()
-        
+
         filtered_students = []
         for user_id, name, department, sec in students_query:
             constructed_class = f"{department}{sec}" if sec else department
             if constructed_class == class_name:
-                filtered_students.append((user_id, name, department, sec))
-        
+                filtered_students.append((user_id, name))
+
         attendance_list = []
-        for user_id, name, department, sec in filtered_students:
+
+        for user_id, name in filtered_students:
             attendance_record = Attendance.query.filter_by(
                 student_id=user_id,
                 date=date_obj,
                 class_name=class_name,
+                subject=subject,
                 session_type=session_type
             ).first()
-            
+
             if attendance_record:
                 attendance_list.append({
                     'id': user_id,
@@ -273,72 +332,16 @@ def get_attendance():
                     'status': 'Absent',
                     'remarks': ''
                 })
-        
+
         return jsonify({
             'success': True,
             'attendance': attendance_list
         }), 200
-        
+
     except Exception as e:
         print(f'Error fetching attendance: {e}')
-        import traceback
-        traceback.print_exc()
         return jsonify({'error': 'Server error', 'message': str(e)}), 500
-
-
-@app.route('/api/attendance', methods=['POST'])
-def save_attendance():
-    try:
-        data = request.get_json()
-        
-        student_id = data.get('studentId')
-        date_str = data.get('date')
-        class_name = data.get('class')
-        session_type = data.get('session_type')
-        status = data.get('status')
-        remarks = data.get('remarks', '')
-        
-        if not all([student_id, date_str, class_name, session_type, status]):
-            return jsonify({'error': 'Missing required fields'}), 400
-        
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-        
-        attendance_record = Attendance.query.filter_by(
-            student_id=student_id,
-            date=date_obj,
-            class_name=class_name,
-            session_type=session_type
-        ).first()
-        
-        if attendance_record:
-            attendance_record.status = status
-            attendance_record.remarks = remarks
-            message = 'Attendance updated successfully'
-        else:
-            new_attendance = Attendance(
-                student_id=student_id,
-                date=date_obj,
-                class_name=class_name,
-                session_type=session_type,
-                status=status,
-                remarks=remarks
-            )
-            db.session.add(new_attendance)
-            message = 'Attendance recorded successfully'
-        
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': message
-        }), 200
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f'Error saving attendance: {e}')
-        return jsonify({'error': 'Server error', 'message': str(e)}), 500
-
-
+    
 @app.route('/api/student/attendance', methods=['GET'])
 def get_student_attendance():
     try:
@@ -347,7 +350,6 @@ def get_student_attendance():
         if not student_id:
             return jsonify({'error': 'Student ID is required'}), 400
         
-      
         student = db.session.query(User, Student).join(
             Student, User.id == Student.id
         ).filter(User.id == student_id).first()
@@ -367,6 +369,7 @@ def get_student_attendance():
             attendance_list.append({
                 'date': record.date.strftime('%Y-%m-%d'),
                 'class': record.class_name,
+                'subject': record.subject or '',
                 'session_type': record.session_type,
                 'status': record.status,
                 'remarks': record.remarks or ''
@@ -377,14 +380,12 @@ def get_student_attendance():
         absent_days = len([r for r in attendance_records if r.status == 'Absent'])
         late_days = len([r for r in attendance_records if r.status == 'Late'])
         
-       
         theory_records = [r for r in attendance_records if r.session_type == 'Theory']
         theory_total = len(theory_records)
         theory_present = len([r for r in theory_records if r.status == 'Present'])
         theory_absent = len([r for r in theory_records if r.status == 'Absent'])
         theory_late = len([r for r in theory_records if r.status == 'Late'])
         
-      
         lab_records = [r for r in attendance_records if r.session_type == 'Lab']
         lab_total = len(lab_records)
         lab_present = len([r for r in lab_records if r.status == 'Present'])
@@ -395,6 +396,40 @@ def get_student_attendance():
         theory_percentage = (theory_present / theory_total * 100) if theory_total > 0 else 0
         lab_percentage = (lab_present / lab_total * 100) if lab_total > 0 else 0
         
+        # Build subject-wise statistics
+        subject_map = {}
+        for record in attendance_records:
+            subj = record.subject or 'Unknown'
+            if subj not in subject_map:
+                subject_map[subj] = {
+                    'subject': subj,
+                    'session_type': record.session_type,
+                    'total': 0,
+                    'present': 0,
+                    'absent': 0,
+                    'late': 0
+                }
+            subject_map[subj]['total'] += 1
+            if record.status == 'Present':
+                subject_map[subj]['present'] += 1
+            elif record.status == 'Absent':
+                subject_map[subj]['absent'] += 1
+            elif record.status == 'Late':
+                subject_map[subj]['late'] += 1
+        
+        subjects_stats = []
+        for subj, stats in subject_map.items():
+            pct = (stats['present'] / stats['total'] * 100) if stats['total'] > 0 else 0
+            subjects_stats.append({
+                'subject': stats['subject'],
+                'session_type': stats['session_type'],
+                'total': stats['total'],
+                'present': stats['present'],
+                'absent': stats['absent'],
+                'late': stats['late'],
+                'percentage': round(pct, 2)
+            })
+        
         return jsonify({
             'success': True,
             'student': {
@@ -403,6 +438,7 @@ def get_student_attendance():
                 'class': class_name
             },
             'attendance': attendance_list,
+            'subjects_stats': subjects_stats,
             'statistics': {
                 'overall': {
                     'total': total_days,
@@ -432,8 +468,82 @@ def get_student_attendance():
         print(f'Error fetching student attendance: {e}')
         import traceback
         traceback.print_exc()
-        return jsonify({'error': 'Server error', 'message': str(e)}), 500   
-    
+        return jsonify({'error': 'Server error', 'message': str(e)}), 500
+
+@app.route('/api/student/subjects', methods=['GET'])
+def get_student_subjects():
+    try:
+        student_id = request.args.get('studentId')
+        semester = request.args.get('semester')
+
+        if not student_id:
+            return jsonify({'error': 'Student ID is required'}), 400
+
+        student = db.session.query(User, Student).join(
+            Student, User.id == Student.id
+        ).filter(User.id == student_id).first()
+
+        if not student:
+            return jsonify({'error': 'Student not found'}), 404
+
+        user, student_info = student
+        class_name = f"{student_info.department}{student_info.sec}"
+
+        # Build query for teacher assignments matching this student's section
+        query = db.session.query(
+            TeacherAssignment, User
+        ).join(
+            User, TeacherAssignment.teacher_id == User.id
+        ).filter(
+            TeacherAssignment.section == class_name
+        )
+
+        if semester:
+            sem_str = str(semester)
+            if not sem_str.startswith('Sem'):
+                sem_str = f'Sem {sem_str}'
+            query = query.filter(TeacherAssignment.semester == sem_str)
+
+        assignments = query.order_by(TeacherAssignment.subject).all()
+
+        # Get available semesters for this section
+        all_semesters = db.session.query(
+            db.distinct(TeacherAssignment.semester)
+        ).filter(
+            TeacherAssignment.section == class_name
+        ).order_by(TeacherAssignment.semester).all()
+
+        semesters_list = [s[0] for s in all_semesters]
+
+        subjects_list = []
+        for assignment, teacher in assignments:
+            subjects_list.append({
+                'id': assignment.id,
+                'subject': assignment.subject,
+                'session_type': assignment.session_type,
+                'semester': assignment.semester,
+                'teacher': teacher.name,
+                'section': assignment.section
+            })
+
+        return jsonify({
+            'success': True,
+            'student': {
+                'id': user.id,
+                'name': user.name,
+                'class': class_name
+            },
+            'subjects': subjects_list,
+            'semesters': semesters_list
+        }), 200
+
+    except Exception as e:
+        print(f'Error fetching student subjects: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Server error', 'message': str(e)}), 500
+
+
 @app.route('/api/dashboard/stats', methods=['GET'])
 def get_dashboard_stats():
     try:
@@ -450,6 +560,167 @@ def get_dashboard_stats():
     except Exception as e:
         print(f"Error fetching stats: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route('/api/teacher-assignments', methods=['POST'])
+def create_teacher_assignment():
+    try:
+        data = request.get_json()
+        teacher_id = data.get('teacher_id')
+        section = data.get('section')
+        subject = data.get('subject')
+        session_type = data.get('session_type')
+        semester = data.get('semester', 'Sem 6')
+        
+        if not all([teacher_id, section, subject, session_type]):
+            return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+        
+        # Normalize semester format
+        sem_str = str(semester)
+        if not sem_str.startswith('Sem'):
+            sem_str = f'Sem {sem_str}'
+        
+        assignment = TeacherAssignment(
+            teacher_id=teacher_id,
+            section=section,
+            subject=subject,
+            session_type=session_type,
+            semester=sem_str
+        )
+        db.session.add(assignment)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Assignment created successfully'}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/teacher-assignments/<teacher_id>', methods=['GET'])
+def get_teacher_assignments(teacher_id):
+    try:
+        assignments = TeacherAssignment.query.filter_by(teacher_id=teacher_id).all()
+        result = [{
+            'id': a.id,
+            'section': a.section,
+            'subject': a.subject,
+            'session_type': a.session_type,
+            'semester': a.semester
+        } for a in assignments]
+        
+        return jsonify({'success': True, 'assignments': result}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/teacher-assignments/<int:assignment_id>', methods=['DELETE'])
+def delete_teacher_assignment(assignment_id):
+    try:
+        assignment = TeacherAssignment.query.get(assignment_id)
+        if not assignment:
+            return jsonify({'success': False, 'message': 'Assignment not found'}), 404
+        
+        db.session.delete(assignment)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Assignment deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/results', methods=['POST'])
+def create_result():
+    try:
+        data = request.get_json()
+        student_id = data.get('studentId') or data.get('student_id')
+        semester = data.get('semester')
+        exam_type = data.get('examType') or data.get('exam_type')
+        subject = data.get('subject')
+        marks = data.get('marks')
+        total_marks = data.get('totalMarks') or data.get('total_marks', 100)
+        
+        if not all([student_id, semester, exam_type, subject, marks]):
+            return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+        
+        # Normalize semester to "Sem X" format
+        sem_str = str(semester)
+        if not sem_str.startswith('Sem'):
+            sem_str = f'Sem {sem_str}'
+        
+        marks = float(marks)
+        total_marks = float(total_marks) if total_marks else 100.0
+
+        # Check if a result already exists for this student/semester/exam/subject
+        existing = Result.query.filter_by(
+            student_id=student_id,
+            semester=sem_str,
+            exam_type=exam_type,
+            subject=subject
+        ).first()
+
+        if existing:
+            existing.marks = marks
+            existing.total_marks = total_marks
+            message = 'Result updated successfully'
+        else:
+            result = Result(
+                student_id=student_id,
+                semester=sem_str,
+                exam_type=exam_type,
+                subject=subject,
+                marks=marks,
+                total_marks=total_marks
+            )
+            db.session.add(result)
+            message = 'Result created successfully'
+
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': message}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f'Error creating result: {e}')
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/results/<student_id>', methods=['GET'])
+def get_student_results(student_id):
+    try:
+        # Optional query params for filtering
+        semester = request.args.get('semester')
+        exam_type = request.args.get('exam_type')
+
+        query = Result.query.filter_by(student_id=student_id)
+
+        if semester:
+            sem_str = str(semester)
+            if not sem_str.startswith('Sem'):
+                sem_str = f'Sem {sem_str}'
+            query = query.filter_by(semester=sem_str)
+
+        if exam_type:
+            query = query.filter_by(exam_type=exam_type)
+
+        results = query.order_by(Result.semester, Result.subject).all()
+
+        results_list = []
+        for r in results:
+            percentage = (r.marks / r.total_marks * 100) if r.total_marks > 0 else 0
+            results_list.append({
+                'id': r.id,
+                'studentId': r.student_id,
+                'semester': r.semester,
+                'examType': r.exam_type,
+                'subject': r.subject,
+                'obtainedMarks': r.marks,
+                'totalMarks': r.total_marks,
+                'score': round(percentage, 2)
+            })
+
+        return jsonify({'success': True, 'results': results_list}), 200
+    except Exception as e:
+        print(f'Error fetching results: {e}')
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @app.route('/api/logout', methods=['POST'])

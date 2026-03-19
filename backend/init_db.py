@@ -4,7 +4,7 @@ from models import User
 def init_database():
     """Initialize database with admin user"""
     with app.app_context():
-        # Create all tables
+        
         db.create_all()
         
         # Check if admin user already exists

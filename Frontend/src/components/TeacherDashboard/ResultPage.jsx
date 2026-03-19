@@ -12,7 +12,6 @@ const ResultPage = () => {
     totalMarks: '100'
   })
 
-  // Dummy subjects data mapped by semester
   const subjectsBySemester = {
     '1': ['Mathematics-I', 'Physics', 'Basic Electrical', 'Engineering Graphics'],
     '2': ['Mathematics-II', 'Chemistry', 'Programming in C', 'English'],
@@ -26,12 +25,30 @@ const ResultPage = () => {
 
   const currentSubjects = formData.semester ? subjectsBySemester[formData.semester] : []
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // DATABASE CONNECTION:
-    // This function will connect to your backend API to save the results
-    console.log('Uploading marks for:', formData)
-    alert(`Marks for ${formData.studentId} (${formData.subject}) uploaded locally.`)
+
+    try {
+      const res = await fetch('http://localhost:5000/api/results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.success) {
+        alert(`Success: ${data.message}`)
+        setFormData(prev => ({ ...prev, marks: '', studentId: '' }))
+      } else {
+        alert(`Error: ${data.message || data.error || 'Failed to submit marks'}`)
+      }
+    } catch (error) {
+      console.error('Error uploading marks:', error)
+      alert('Failed to connect to the server. Please check your network.')
+    }
   }
 
   return (
@@ -61,7 +78,7 @@ const ResultPage = () => {
               >
                 <option value="">Select Semester</option>
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
-                  <option key={sem} value={sem}>Semester {sem}</option>
+                  <option key={sem} value={sem}>Sem {sem}</option>
                 ))}
               </select>
             </div>
@@ -75,9 +92,9 @@ const ResultPage = () => {
                 style={{ padding: '12px', borderRadius: '10px', border: '1px solid #e0e0e0', background: '#f4f7fe' }}
               >
                 <option value="">Select Exam Type</option>
-                <option value="Internal">Internal Assessment</option>
-                <option value="Semester">Semester End Exam</option>
+                <option value="Internal">Internal</option>
                 <option value="ClassTest">Class Test</option>
+                <option value="Semester">Semester Exam</option>
               </select>
             </div>
           </div>

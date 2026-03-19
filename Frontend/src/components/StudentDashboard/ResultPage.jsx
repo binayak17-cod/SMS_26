@@ -1,116 +1,172 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import StudentLayout from './StudentLayout'
 
 export default function ResultPage() {
-  const [openSemester, setOpenSemester] = useState('Fall 2023')
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const results = [
-    { id: 1, subject: 'Data Structures & Algorithms', code: 'CS201', score: 87, grade: 'A-', date: '2024-01-15', status: 'Pass', semester: 'Fall 2023' },
-    { id: 2, subject: 'Operating Systems', code: 'CS301', score: 78, grade: 'B+', date: '2024-01-10', status: 'Pass', semester: 'Fall 2023' },
-    { id: 3, subject: 'Discrete Mathematics', code: 'MA210', score: 92, grade: 'A', date: '2023-12-18', status: 'Pass', semester: 'Fall 2023' },
-    { id: 4, subject: 'Database Management', code: 'CS302', score: 65, grade: 'C+', date: '2023-12-20', status: 'Pass', semester: 'Fall 2023' },
+  const [rollNumber, setRollNumber] = useState('')
+  const [selectedSemester, setSelectedSemester] = useState('')
+  const [selectedExamType, setSelectedExamType] = useState('')
+  const [tableData, setTableData] = useState([])
 
-    { id: 5, subject: 'Computer Networks', code: 'CS401', score: 81, grade: 'B+', date: '2023-06-10', status: 'Pass', semester: 'Spring 2023' },
-    { id: 6, subject: 'Software Engineering', code: 'CS402', score: 89, grade: 'A-', date: '2023-06-15', status: 'Pass', semester: 'Spring 2023' },
-  ]
+  useEffect(() => {
+    const studentId = localStorage.getItem('userId') || '23CSE346'
+    setRollNumber(studentId)
+    fetchResults(studentId)
+  }, [])
 
-  const gradePoints = {
-    'A': 4, 'A-': 3.7, 'B+': 3.3, 'B': 3,
-    'C+': 2.3, 'C': 2, 'D': 1, 'F': 0
+  const fetchResults = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/results/${id}`)
+      const data = await res.json()
+      if (data.success) {
+        setResults(data.results)
+        setTableData(data.results)
+        const sems = [...new Set(data.results.map(r => r.semester.replace('Sem ', '')))].sort()
+        if (sems.length > 0) setSelectedSemester(sems[sems.length - 1])
+      }
+    } catch (err) {
+      console.error('Error fetching results:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const semesters = [...new Set(results.map(r => r.semester))]
-
-  const calculateStats = (list) => {
-    const avg = Math.round(list.reduce((s, r) => s + r.score, 0) / list.length)
-    const gpa = (
-      list.reduce((s, r) => s + (gradePoints[r.grade] || 0), 0) / list.length
-    ).toFixed(2)
-    return { avg, gpa }
+  const handleViewDetails = () => {
+    let filtered = results;
+    if (selectedSemester) {
+      // Semester comes from DB as 'Sem 6', local state is '6'
+      filtered = filtered.filter(r => r.semester.includes(selectedSemester))
+    }
+    if (selectedExamType) {
+      filtered = filtered.filter(r => r.examType === selectedExamType)
+    }
+    setTableData(filtered)
   }
 
-  const gradeColor = (g) =>
-    g.startsWith('A') ? '#16a34a' :
-    g.startsWith('B') ? '#2563eb' :
-    g.startsWith('C') ? '#d97706' : '#dc2626'
+  const semesters = [...new Set(results.map(r => r.semester.replace('Sem ', '')))].sort()
+  const examTypes = [...new Set(results.map(r => r.examType))]
 
   return (
     <StudentLayout>
-      <div style={{ padding: '32px', background: '#f8fafc', minHeight: '100vh' }}>
+      <div style={{ padding: '30px', background: '#f5f7fa', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
 
-        <h2 style={{ marginBottom: '24px', fontSize: '26px' }}>
-          Academic Results
-        </h2>
+        <div style={{ background: '#ffffff', borderRadius: '4px', padding: '25px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
 
-        {semesters.map(semester => {
-          const semesterResults = results.filter(r => r.semester === semester)
-          const { avg, gpa } = calculateStats(semesterResults)
-          const isOpen = openSemester === semester
 
-          return (
-            <div key={semester} style={{
-              marginBottom: '18px',
-              background: 'white',
-              borderRadius: '14px',
-              boxShadow: '0 4px 12px rgba(0,0,0,.08)'
-            }}>
-              {/* Semester Header */}
-              <div
-                onClick={() => setOpenSemester(isOpen ? null : semester)}
+          <h2 style={{ fontSize: '18px', color: '#2b3674', fontWeight: 'normal', margin: '0 0 15px 0' }}>Exam Details</h2>
+          <div style={{ width: '100%', height: '1px', background: '#eef2f6', marginBottom: '20px' }}></div>
+
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end', marginBottom: '25px', flexWrap: 'wrap' }}>
+
+
+            <div style={{ flex: 1, minWidth: '180px', maxWidth: '280px' }}>
+              <label style={{ fontSize: '14px', color: '#333', marginBottom: '8px', display: 'block' }}>
+                Semester <span style={{ color: '#dc3545' }}>*</span>
+              </label>
+              <select
+                value={selectedSemester}
+                onChange={e => setSelectedSemester(e.target.value)}
                 style={{
-                  padding: '20px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderBottom: isOpen ? '1px solid #e5e7eb' : 'none'
+                  width: '100%', padding: '10px 12px', border: '1px solid #ced4da',
+                  borderRadius: '4px', color: '#495057', fontSize: '14px', outline: 'none',
+                  background: 'white'
                 }}
               >
-                <div>
-                  <h3 style={{ margin: 0 }}>{semester}</h3>
-                  <small style={{ color: '#64748b' }}>
-                    GPA {gpa} • Avg {avg}%
-                  </small>
-                </div>
-                <span style={{ fontSize: '22px' }}>
-                  {isOpen ? '▾' : '▸'}
-                </span>
-              </div>
-
-              {/* Subjects */}
-              {isOpen && (
-                <div style={{ padding: '20px' }}>
-                  {semesterResults.map(r => (
-                    <div key={r.id} style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      padding: '14px 0',
-                      borderBottom: '1px solid #f1f5f9'
-                    }}>
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{r.subject}</div>
-                        <small style={{ color: '#64748b' }}>
-                          {r.code} • {new Date(r.date).toLocaleDateString()}
-                        </small>
-                      </div>
-
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{
-                          fontWeight: 700,
-                          color: gradeColor(r.grade)
-                        }}>
-                          {r.grade}
-                        </div>
-                        <small>{r.score}%</small>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                <option value="">-Select-</option>
+                {semesters.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
-          )
-        })}
 
+            <div style={{ flex: 1, minWidth: '180px', maxWidth: '280px' }}>
+              <label style={{ fontSize: '14px', color: '#333', marginBottom: '8px', display: 'block' }}>
+                Exam Type <span style={{ color: '#dc3545' }}>*</span>
+              </label>
+              <select
+                value={selectedExamType}
+                onChange={e => setSelectedExamType(e.target.value)}
+                style={{
+                  width: '100%', padding: '10px 12px', border: '1px solid #ced4da',
+                  borderRadius: '4px', color: '#495057', fontSize: '14px', outline: 'none',
+                  background: 'white'
+                }}
+              >
+                <option value="">-Select-</option>
+                {examTypes.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <button
+                onClick={handleViewDetails}
+                style={{
+                  background: '#8a8585ff', color: 'white', border: 'none',
+                  padding: '11px 20px', borderRadius: '4px', cursor: 'pointer',
+                  fontSize: '14px', fontWeight: 'bold', transition: 'filter 0.2s'
+                }}
+                onMouseOver={e => e.currentTarget.style.filter = 'brightness(95%)'}
+                onMouseOut={e => e.currentTarget.style.filter = 'brightness(100%)'}
+              >
+                View Exam Details
+              </button>
+            </div>
+          </div>
+
+
+
+          <div style={{ overflowX: 'auto', border: '1px solid #eef2f6', marginBottom: '40px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#8c8c8cff', color: 'white' }}>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: 'bold', borderRight: '1px solid rgba(255,255,255,0.3)', width: '30%' }}>Exam</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: 'bold', borderRight: '1px solid rgba(255,255,255,0.3)' }}>Marks Secured</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontWeight: 'bold', borderRight: '1px solid rgba(255,255,255,0.3)' }}>Total Marks</th>
+                  <th style={{ padding: '12px 10px', textAlign: 'left', fontWeight: 'bold', borderRight: '1px solid rgba(255,255,255,0.3)' }}>Percentage</th>
+
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#666' }}>Loading...</td></tr>
+                ) : tableData.length === 0 ? (
+                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#666' }}>No records found.</td></tr>
+                ) : (
+                  tableData.map((row, idx) => (
+                    <tr key={row.id} style={{ background: idx % 2 === 0 ? '#f8f9fa' : '#ffffff', borderBottom: '1px solid #eef2f6' }}>
+                      <td style={{ padding: '12px 15px', color: '#333' }}>{row.subject} ({row.examType})</td>
+                      <td style={{ padding: '12px 15px', color: '#333' }}>{row.obtainedMarks}</td>
+                      <td style={{ padding: '12px 15px', color: '#333' }}>{row.totalMarks.toFixed(2)}</td>
+                      <td style={{ padding: '12px 15px', color: '#333' }}>{row.score.toFixed(2)}</td>
+                      <td style={{ padding: '12px 0px' }}>
+
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ width: '100%', height: '1px', background: '#eef2f6', marginBottom: '20px' }}></div>
+
+          {/* Go back bottom */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '10px' }}>
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                background: '#5d5f5fff', color: 'white', border: 'none',
+                padding: '10px 24px', borderRadius: '4px', cursor: 'pointer',
+                fontSize: '14px', fontWeight: 'bold', transition: 'filter 0.2s'
+              }}
+              onMouseOver={e => e.currentTarget.style.filter = 'brightness(95%)'}
+              onMouseOut={e => e.currentTarget.style.filter = 'brightness(100%)'}
+            >
+              Go back!
+            </button>
+          </div>
+
+        </div>
       </div>
     </StudentLayout>
   )

@@ -1,6 +1,7 @@
 import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import './Navbar.css'
+import { Link } from 'react-router-dom'
 
 export const Navbar = () => {
   return (
@@ -14,13 +15,14 @@ export const Navbar = () => {
         <a href="#contact" className="nav-link">Contact Us</a>
         <a href="#services" className="nav-link">Services</a>
       </div>
-      
+      <Link to="/login">
       <div className="nav-right">
         <button className="get-started-btn">
           Get Started
           <ArrowRight size={16} />
         </button>
       </div>
+      </Link>
     </nav>
   )
 }

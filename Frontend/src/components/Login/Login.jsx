@@ -161,7 +161,7 @@ export default function Login() {
       >
         <Paper elevation={20} className="modern-login-box">
           <Box display="flex" height="100%">
-            {/* Left Side */}
+           
             <motion.div
               initial={{ x: -100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -170,8 +170,7 @@ export default function Login() {
             >
               <Box className="login-left-content-modern">
                 <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                 
                 >
                   <School sx={{ fontSize: 80, color: 'white', mb: 2 }} />
                 </motion.div>

@@ -13,12 +13,11 @@ const AttendancePage = () => {
     const [loading, setLoading] = useState(false);
     const [classes, setClasses] = useState([]);
 
-    // Fetch students from database
+
     useEffect(() => {
         fetchStudents();
     }, []);
 
-    // Fetch attendance when filters change
     useEffect(() => {
         if (filterClass) {
             fetchAttendance();
@@ -31,15 +30,15 @@ const AttendancePage = () => {
             const data = await res.json();
             const studentsList = data.users || [];
             setStudents(studentsList);
-            
-            // Extract unique classes from students
+
+
             const uniqueClasses = [...new Set(
                 studentsList.map(s => `${s.department}${s.sec}`)
             )].sort();
-            
+
             setClasses(uniqueClasses);
-            
-            // Set default class if not set
+
+
             if (!filterClass && uniqueClasses.length > 0) {
                 setFilterClass(uniqueClasses[0]);
             }
@@ -55,13 +54,13 @@ const AttendancePage = () => {
             const res = await fetch(
                 `http://localhost:5000/api/attendance?class=${filterClass}&date=${filterDate}`
             );
-            
+
             if (!res.ok) {
                 throw new Error('Failed to fetch attendance');
             }
-            
+
             const data = await res.json();
-            
+
             // If no attendance records exist, create initial records from students
             if (!data.attendance || data.attendance.length === 0) {
                 const initialRecords = students
@@ -117,12 +116,12 @@ const AttendancePage = () => {
                     date: filterDate,
                     class: filterClass,
                     status: editFormData.status,
-                    remarks: editFormData.remarks
+                   
                 })
             });
 
             if (res.ok) {
-                setAttendanceData(prev => 
+                setAttendanceData(prev =>
                     prev.map(item => item.id === editingRow ? editFormData : item)
                 );
                 setEditingRow(null);
@@ -169,7 +168,7 @@ const AttendancePage = () => {
                 ) : attendanceData.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>No students found for this class</div>
                 ) : (
-                    <Table headers={['Roll No', 'Student Name', 'Status', 'Remarks', 'Actions']}>
+                    <Table headers={['Roll No', 'Student Name', 'Status', 'Actions']}>
                         {attendanceData.map(record => (
                             <tr key={record.id}>
                                 <td>{record.roll}</td>
@@ -184,37 +183,26 @@ const AttendancePage = () => {
                                         >
                                             <option value="Present">Present</option>
                                             <option value="Absent">Absent</option>
-                                            <option value="Late">Late</option>
+                            
                                         </select>
                                     ) : (
                                         <Badge type={
                                             record.status === 'Present' ? 'success' :
-                                                record.status === 'Absent' ? 'danger' : 'warning'
+                                                record.status === 'Absent' 
                                         }>
                                             {record.status}
                                         </Badge>
                                     )}
                                 </td>
-                                <td>
-                                    {editingRow === record.id ? (
-                                        <input
-                                            className="admin-input"
-                                            value={editFormData.remarks}
-                                            onChange={(e) => handleChange('remarks', e.target.value)}
-                                            style={{ padding: '4px 8px', fontSize: '0.875rem' }}
-                                        />
-                                    ) : (
-                                        record.remarks || '-'
-                                    )}
-                                </td>
+                               
                                 <td>
                                     {editingRow === record.id ? (
                                         <div style={{ display: 'flex', gap: '8px' }}>
-                                            <Button variant="success" onClick={handleSave} style={{ padding: '4px 8px' }}>💾</Button>
-                                            <Button variant="ghost" onClick={handleCancel} style={{ padding: '4px 8px' }}>❌</Button>
+                                            <Button bg-grey bg-radius="8px" variant="ghost" onClick={handleSave} style={{ padding: '4px 8px', background: "#fff" }}>Save</Button>
+                                            <Button variant='ghost' onClick={handleCancel} style={{ padding: '4px 6px' }}>X</Button>
                                         </div>
                                     ) : (
-                                        <Button variant="ghost" onClick={() => handleEditClick(record)} className="btn-icon">✏️</Button>
+                                        <Button variant="ghost" onClick={() => handleEditClick(record)} className="btn-icon">Edit</Button>
                                     )}
                                 </td>
                             </tr>

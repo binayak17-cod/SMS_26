@@ -8,6 +8,7 @@ import AttendancePage from '../components/AdminDashboard/AttendancePage';
 import MarksPage from '../components/AdminDashboard/MarksPage';
 import IDCreationPage from '../components/AdminDashboard/IDCreationPage';
 import RoleAssignmentPage from '../components/AdminDashboard/RoleAssignmentPage';
+import BatchAssignmentPage from '../components/AdminDashboard/BatchAssignmentPage';
 import AnalyticsPage from '../components/AdminDashboard/AnalyticsPage';
 import SettingsPage from '../components/AdminDashboard/SettingsPage';
 
@@ -21,6 +22,7 @@ const AdminDashboard = () => {
         <Route path="marks" element={<MarksPage />} />
         <Route path="id-creation" element={<IDCreationPage />} />
         <Route path="role-assignment" element={<RoleAssignmentPage />} />
+        <Route path="batch-assignment" element={<BatchAssignmentPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="settings" element={<SettingsPage />} />
 
