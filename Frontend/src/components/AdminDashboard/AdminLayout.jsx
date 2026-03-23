@@ -1,11 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import './AdminLayout.css';
+
+const API_BASE = 'http://localhost:5000/api';
 
 const AdminLayout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [user, setUser] = useState({ name: 'Admin', role: 'admin' });
+    const dropdownRef = useRef(null);
     const location = useLocation();
+
+    useEffect(() => {
+        const userId = localStorage.getItem('userId');
+        const userRole = localStorage.getItem('userRole');
+        if (userId) {
+            axios.get(`${API_BASE}/users`)
+                .then(res => {
+                    if (res.data.success) {
+                        const found = res.data.users.find(u => u.id === userId);
+                        if (found) {
+                            setUser({ name: found.name, role: found.role });
+                        }
+                    }
+                })
+                .catch(err => console.error('Failed to fetch user info:', err));
+
+            if (userRole) {
+                setUser(prev => ({ ...prev, role: userRole }));
+            }
+        }
+    }, []);
+
+  
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userRole");
+        window.location.href = "/login";
+    };
 
     const menuItems = [
         { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
@@ -18,11 +62,13 @@ const AdminLayout = ({ children }) => {
         { name: 'Settings', path: '/admin/settings', icon: '⚙️' },
     ];
 
+    const getInitial = (name) => name ? name.charAt(0).toUpperCase() : 'A';
+
     return (
         <div className="admin-layout">
-            {/* Sidebar */}
+          
             <motion.aside
-                className={`admin-sidebar`}
+                className="admin-sidebar"
                 initial={false}
                 animate={{ width: sidebarOpen ? 260 : 80 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -72,11 +118,11 @@ const AdminLayout = ({ children }) => {
 
                 <div className="sidebar-footer">
                     <div className="admin-profile-mini">
-                        <div className="avatar">A</div>
+                        <div className="avatar">{getInitial(user.name)}</div>
                         {sidebarOpen && (
                             <div className="info">
-                                <p className="name">Admin User</p>
-                                <p className="role">Super Admin</p>
+                                <p className="name">{user.name}</p>
+                                <p className="role">{user.role}</p>
                             </div>
                         )}
                     </div>
@@ -93,16 +139,33 @@ const AdminLayout = ({ children }) => {
                         </h1>
                     </div>
                     <div className="header-right">
-                        <div className="search-bar">
-                            <span className="search-icon">🔍</span>
-                            <input type="text" placeholder="Global search..." />
-                        </div>
-                        <button className="icon-btn notification-btn">
-                            🔔
-                            <span className="badge">3</span>
-                        </button>
-                        <div className="profile-dropdown">
-                            <div className="avatar">A</div>
+                        <div
+                            className="profile-dropdown"
+                            ref={dropdownRef}
+                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                        >
+                            <div className="avatar">{getInitial(user.name)}</div>
+                            <div className="profile-info">
+                                <p className="profile-name">{user.name}</p>
+                                <p className="profile-role">{user.role}</p>
+                            </div>
+                            <span className="dropdown-arrow">▼</span>
+
+                            <AnimatePresence>
+                                {dropdownOpen && (
+                                    <motion.div
+                                        className="dropdown-menu"
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <button className="dropdown-item">Profile</button>
+                                        <button className="dropdown-item">Settings</button>
+                                        <button className="dropdown-item logout" onClick={handleLogout}>Logout</button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 </header>

@@ -1,55 +1,174 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useState } from 'react'
 
 const ResultPage = () => {
-  const [formData, setFormData] = useState({
-    semester: '',
-    examType: '',
-    studentId: '',
-    subject: '',
-    marks: '',
-    totalMarks: '100'
-  })
+  const [teacherId, setTeacherId] = useState('')
+  const [assignments, setAssignments] = useState([])
+  const [sections, setSections] = useState([])
+  const [semesters, setSemesters] = useState([])
+  const [subjects, setSubjects] = useState([])
+  const [students, setStudents] = useState([])
 
-  const subjectsBySemester = {
-    '1': ['Mathematics-I', 'Physics', 'Basic Electrical', 'Engineering Graphics'],
-    '2': ['Mathematics-II', 'Chemistry', 'Programming in C', 'English'],
-    '3': ['Data Structures', 'Digital Logic', 'Discrete Math', 'OOPs'],
-    '4': ['Operating Systems', 'COA', 'Design Algorithms', 'Database Systems'],
-    '5': ['Computer Networks', 'Software Engineering', 'Automata', 'Web Tech'],
-    '6': ['Compiler Design', 'AI', 'Machine Learning', 'Cloud Computing'],
-    '7': ['Cryptography', 'Big Data', 'Distributed Systems', 'Project-I'],
-    '8': ['IoT', 'Blockchain', 'Cyber Security', 'Project-II']
+  const [selectedSection, setSelectedSection] = useState('')
+  const [selectedSemester, setSelectedSemester] = useState('')
+  const [selectedSubject, setSelectedSubject] = useState('')
+  const [selectedExamType, setSelectedExamType] = useState('Internal')
+  const [selectedStudentId, setSelectedStudentId] = useState('')
+
+  const [marks, setMarks] = useState('')
+  const [totalMarks, setTotalMarks] = useState('100')
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState('')
+
+  // Get teacher ID from localStorage
+  useEffect(() => {
+    const id = localStorage.getItem('userId')
+    if (id) {
+      setTeacherId(id)
+      fetchAssignments(id)
+    }
+  }, [])
+
+  // Derive unique sections from assignments
+  useEffect(() => {
+    const uniqueSections = [...new Set(assignments.map(a => a.section))].sort()
+    setSections(uniqueSections)
+    if (uniqueSections.length > 0 && !selectedSection) {
+      setSelectedSection(uniqueSections[0])
+    }
+  }, [assignments])
+
+  // When section changes, derive semesters for that section
+  useEffect(() => {
+    if (!selectedSection) return
+    const sems = [...new Set(
+      assignments.filter(a => a.section === selectedSection).map(a => a.semester)
+    )].sort()
+    setSemesters(sems)
+    if (sems.length > 0 && !sems.includes(selectedSemester)) {
+      setSelectedSemester(sems[0])
+    }
+    // Also fetch students for this section
+    fetchStudentsForSection(selectedSection)
+  }, [selectedSection])
+
+  // When section or semester changes, derive subjects
+  useEffect(() => {
+    if (!selectedSection || !selectedSemester) return
+    const subs = assignments
+      .filter(a => a.section === selectedSection && a.semester === selectedSemester)
+      .map(a => a.subject)
+    const uniqueSubs = [...new Set(subs)].sort()
+    setSubjects(uniqueSubs)
+    if (uniqueSubs.length > 0 && !uniqueSubs.includes(selectedSubject)) {
+      setSelectedSubject(uniqueSubs[0])
+    }
+  }, [selectedSection, selectedSemester])
+
+  const fetchAssignments = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/teacher-assignments/${id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setAssignments(data.assignments || [])
+      }
+    } catch (err) {
+      console.error('Error fetching assignments:', err)
+    }
   }
 
-  const currentSubjects = formData.semester ? subjectsBySemester[formData.semester] : []
+  const fetchStudentsForSection = async (section) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/users?role=student')
+      if (res.ok) {
+        const data = await res.json()
+        const allStudents = data.users || []
+        const filtered = allStudents.filter(
+          s => `${s.department}${s.sec}` === section
+        )
+        setStudents(filtered)
+        setSelectedStudentId('')
+      }
+    } catch (err) {
+      console.error('Error fetching students:', err)
+    }
+  }
+
+  const showToast = (msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(''), 3000)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!selectedStudentId || !selectedSubject || !marks) {
+      showToast('Please fill all required fields')
+      return
+    }
+
+    const marksNum = parseFloat(marks)
+    const totalNum = parseFloat(totalMarks) || 100
+    if (isNaN(marksNum) || marksNum < 0) {
+      showToast('Please enter valid marks')
+      return
+    }
+    if (marksNum > totalNum) {
+      showToast(`Marks cannot exceed ${totalNum}`)
+      return
+    }
+
+    setLoading(true)
     try {
       const res = await fetch('http://localhost:5000/api/results', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: selectedStudentId,
+          semester: selectedSemester,
+          examType: selectedExamType,
+          subject: selectedSubject,
+          marks: marksNum,
+          totalMarks: totalNum
+        })
       })
 
       const data = await res.json()
 
       if (res.ok && data.success) {
-        alert(`Success: ${data.message}`)
-        setFormData(prev => ({ ...prev, marks: '', studentId: '' }))
+        showToast(`✓ ${data.message}`)
+        setMarks('')
       } else {
-        alert(`Error: ${data.message || data.error || 'Failed to submit marks'}`)
+        showToast(`Error: ${data.message || 'Failed to submit marks'}`)
       }
     } catch (error) {
       console.error('Error uploading marks:', error)
-      alert('Failed to connect to the server. Please check your network.')
+      showToast('Failed to connect to the server')
+    } finally {
+      setLoading(false)
     }
   }
+
+  const inputStyle = {
+    padding: '12px',
+    borderRadius: '10px',
+    border: '1px solid #e0e0e0',
+    background: '#f4f7fe',
+    fontSize: '14px',
+    outline: 'none',
+    width: '100%',
+    transition: 'border-color 0.2s',
+  }
+
+  const labelStyle = {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#2b3674',
+    marginBottom: '6px',
+    display: 'block'
+  }
+
+  const selectedStudent = students.find(s => s.id === selectedStudentId)
 
   return (
     <motion.div
@@ -60,106 +179,175 @@ const ResultPage = () => {
     >
       <div style={{ marginBottom: '30px' }}>
         <h3 style={{ margin: 0, color: '#2b3674' }}>Upload Results</h3>
-        <p style={{ margin: 0, color: '#a3aed0', fontSize: '14px' }}>Enter student marks to update the database</p>
+        <p style={{ margin: 0, color: '#a3aed0', fontSize: '14px' }}>Select section, student and subject to update marks</p>
       </div>
 
-      <div className="card-section" style={{ maxWidth: '600px' }}>
+      <div className="card-section" style={{ maxWidth: '650px' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* Row 1: Semester & Exam Type */}
+          {/* Row 1: Section & Semester */}
           <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#2b3674' }}>Semester</label>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Section</label>
               <select
-                value={formData.semester}
-                onChange={(e) => setFormData({ ...formData, semester: e.target.value, subject: '' })}
+                value={selectedSection}
+                onChange={(e) => {
+                  setSelectedSection(e.target.value)
+                  setSelectedStudentId('')
+                }}
                 required
-                style={{ padding: '12px', borderRadius: '10px', border: '1px solid #e0e0e0', background: '#f4f7fe' }}
+                style={inputStyle}
               >
-                <option value="">Select Semester</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
-                  <option key={sem} value={sem}>Sem {sem}</option>
+                <option value="">Select Section</option>
+                {sections.map(sec => (
+                  <option key={sec} value={sec}>{sec}</option>
                 ))}
               </select>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#2b3674' }}>Exam Type</label>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Semester</label>
               <select
-                value={formData.examType}
-                onChange={(e) => setFormData({ ...formData, examType: e.target.value })}
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
                 required
-                style={{ padding: '12px', borderRadius: '10px', border: '1px solid #e0e0e0', background: '#f4f7fe' }}
+                style={inputStyle}
               >
-                <option value="">Select Exam Type</option>
-                <option value="Internal">Internal</option>
-                <option value="ClassTest">Class Test</option>
-                <option value="Semester">Semester Exam</option>
+                <option value="">Select Semester</option>
+                {semesters.map(sem => (
+                  <option key={sem} value={sem}>{sem}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: '600', color: '#2b3674' }}>Student Name / ID</label>
-            <input
-              type="text"
-              placeholder="Enter student Roll No or Name"
-              value={formData.studentId}
-              onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-              required
-              style={{ padding: '12px', borderRadius: '10px', border: '1px solid #e0e0e0', background: '#f4f7fe' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '14px', fontWeight: '600', color: '#2b3674' }}>Subject</label>
+          {/* Row 2: Student ID dropdown */}
+          <div>
+            <label style={labelStyle}>Student Name / ID</label>
             <select
-              value={formData.subject}
-              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+              value={selectedStudentId}
+              onChange={(e) => setSelectedStudentId(e.target.value)}
               required
-              disabled={!formData.semester}
-              style={{ padding: '12px', borderRadius: '10px', border: '1px solid #e0e0e0', background: '#f4f7fe', opacity: !formData.semester ? 0.7 : 1 }}
+              style={inputStyle}
             >
-              <option value="">Select Subject</option>
-              {currentSubjects.map(sub => (
-                <option key={sub} value={sub}>{sub}</option>
+              <option value="">Select Student</option>
+              {students.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.id} — {s.name}
+                </option>
               ))}
             </select>
+            {selectedStudent && (
+              <div style={{ marginTop: '6px', fontSize: '12px', color: '#6b7280' }}>
+                Selected: <strong>{selectedStudent.name}</strong> ({selectedStudent.id})
+              </div>
+            )}
           </div>
 
+          {/* Row 3: Subject & Exam Type */}
           <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#2b3674' }}>Marks Obtained</label>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Subject</label>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                required
+                disabled={!selectedSemester}
+                style={{ ...inputStyle, opacity: !selectedSemester ? 0.6 : 1 }}
+              >
+                <option value="">Select Subject</option>
+                {subjects.map(sub => (
+                  <option key={sub} value={sub}>{sub}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Exam Type</label>
+              <select
+                value={selectedExamType}
+                onChange={(e) => setSelectedExamType(e.target.value)}
+                required
+                style={inputStyle}
+              >
+                <option value="Internal">Internal</option>
+                <option value="Semester">Semester</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 4: Marks */}
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Marks Obtained</label>
               <input
                 type="number"
                 placeholder="e.g. 85"
-                value={formData.marks}
-                onChange={(e) => setFormData({ ...formData, marks: e.target.value })}
+                value={marks}
+                onChange={(e) => setMarks(e.target.value)}
                 required
-                style={{ padding: '12px', borderRadius: '10px', border: '1px solid #e0e0e0', background: '#f4f7fe' }}
+                min="0"
+                max={totalMarks}
+                style={inputStyle}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#2b3674' }}>Total Marks</label>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Total Marks</label>
               <input
                 type="number"
-                value={formData.totalMarks}
-                onChange={(e) => setFormData({ ...formData, totalMarks: e.target.value })}
-                style={{ padding: '12px', borderRadius: '10px', border: '1px solid #e0e0e0', background: '#f4f7fe' }}
+                value={totalMarks}
+                onChange={(e) => setTotalMarks(e.target.value)}
+                style={inputStyle}
               />
             </div>
           </div>
 
           <button
             type="submit"
+            disabled={loading}
             className="banner-btn"
-            style={{ background: '#4318ff', color: 'white', marginTop: '10px' }}
+            style={{
+              background: loading ? '#a0aec0' : '#4318ff',
+              color: 'white',
+              marginTop: '10px',
+              padding: '14px',
+              borderRadius: '12px',
+              border: 'none',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'background 0.2s'
+            }}
           >
-            Upload Marks
+            {loading ? 'Uploading...' : 'Upload Marks'}
           </button>
-
         </form>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: toast.startsWith('Error') ? '#fee2e2' : '#d1fae5',
+            color: toast.startsWith('Error') ? '#dc2626' : '#059669',
+            padding: '12px 24px',
+            borderRadius: '12px',
+            fontWeight: '600',
+            fontSize: '14px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            zIndex: 1000
+          }}
+        >
+          {toast}
+        </motion.div>
+      )}
     </motion.div>
   )
 }

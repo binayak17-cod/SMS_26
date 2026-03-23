@@ -26,14 +26,14 @@ const DashboardPage = () => {
                         { title: 'Total Students', value: data.totalStudents || '0', change: '+12%', color: 'primary' },
                         { title: 'Total Teachers', value: data.totalTeachers || '0', change: '+2%', color: 'success' },
                         { title: 'Overall Attendance', value: data.overallAttendance || '0%', change: '0%', color: 'warning' },
-                        { title: 'Active Classes', value: data.activeClasses || '0', change: '+5%', color: 'info' },
+                        { title: 'Active Classes', value: data.activeClasses || '0', change: '0%', color: 'info' },
                     ]);
                 }
             })
             .catch(err => console.error('Error fetching stats:', err));
     }, []);
 
-    // Three.js Background Effect
+
     useEffect(() => {
         const mount = mountRef.current;
         if (!mount) return;
@@ -45,7 +45,6 @@ const DashboardPage = () => {
         renderer.setSize(mount.clientWidth, mount.clientHeight);
         mount.appendChild(renderer.domElement);
 
-        // Particles
         const geometry = new THREE.BufferGeometry();
         const particlesCount = 50;
         const posArray = new Float32Array(particlesCount * 3);
@@ -56,7 +55,7 @@ const DashboardPage = () => {
 
         geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
 
-        // Create a soft circle texture
+
         const canvas = document.createElement('canvas');
         canvas.width = 32;
         canvas.height = 32;
@@ -81,7 +80,6 @@ const DashboardPage = () => {
 
         camera.position.z = 5;
 
-        // Animation
         let mouseX = 0;
         let mouseY = 0;
 
@@ -96,7 +94,7 @@ const DashboardPage = () => {
 
         animate();
 
-        // Handle Resize
+
         const handleResize = () => {
             camera.aspect = mount.clientWidth / mount.clientHeight;
             camera.updateProjectionMatrix();
@@ -118,9 +116,9 @@ const DashboardPage = () => {
 
 
     const recentActivity = [
-        { id: 1, user: 'Sarah Connor', action: 'Created new Student ID', time: '10 mins ago' },
-        { id: 2, user: 'Admin User', action: 'Updated Attendance for Class 10A', time: '1 hour ago' },
-        { id: 3, user: 'John Doe', action: 'Uploaded Marks for English', time: '2 hours ago' },
+        { id: 1, user: 'Binayak', action: 'Created new Student ID', time: '10 mins ago' },
+        { id: 2, user: 'Admin ', action: 'Updated Attendance for Class 10A', time: '1 hour ago' },
+        { id: 3, user: 'Suprit', action: 'Uploaded Marks for English', time: '2 hours ago' },
         { id: 4, user: 'System', action: 'Backup completed successfully', time: '1 day ago' },
     ];
 
@@ -149,7 +147,7 @@ const DashboardPage = () => {
                 initial="hidden"
                 animate="visible"
             >
-                {/* KPI Cards */}
+
                 <div className="kpi-grid">
                     {kpiData.map((kpi, index) => (
                         <motion.div key={index} variants={itemVariants}>
@@ -164,7 +162,7 @@ const DashboardPage = () => {
                     ))}
                 </div>
 
-                {/* Quick Actions & Activity */}
+
                 <div className="dashboard-split">
                     <motion.div variants={itemVariants} className="split-left">
                         <Card title="Quick Actions">

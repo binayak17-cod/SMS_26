@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AdminComponents.css';
 
-// --- Card ---
+
 export const Card = ({ title, children, className = '', action }) => (
     <motion.div
         className={`admin-card ${className}`}
@@ -22,7 +22,7 @@ export const Card = ({ title, children, className = '', action }) => (
     </motion.div>
 );
 
-// --- Button ---
+
 export const Button = ({ children, variant = 'primary', onClick, icon, disabled, className = '', type = 'button' }) => (
     <motion.button
         type={type}
@@ -46,7 +46,7 @@ export const Input = ({ label, error, ...props }) => (
     </div>
 );
 
-// --- Select ---
+
 export const Select = ({ label, options, error, ...props }) => (
     <div className={`form-group ${error ? 'has-error' : ''}`}>
         {label && <label>{label}</label>}
@@ -59,14 +59,12 @@ export const Select = ({ label, options, error, ...props }) => (
     </div>
 );
 
-// --- Badge ---
 export const Badge = ({ type = 'info', children }) => (
     <span className={`admin-badge badge-${type}`}>
         {children}
     </span>
 );
 
-// --- Table ---
 export const Table = ({ headers, children, actions }) => (
     <div className="table-container">
         <table className="admin-table">
@@ -82,7 +80,7 @@ export const Table = ({ headers, children, actions }) => (
     </div>
 );
 
-// --- Modal ---
+
 export const Modal = ({ isOpen, onClose, title, children, footer }) => (
     <AnimatePresence>
         {isOpen && (
@@ -118,7 +116,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer }) => (
     </AnimatePresence>
 );
 
-// --- Toast ---
 export const Toast = ({ message, type = 'success', onClose }) => (
     <AnimatePresence>
         {message && (
@@ -134,7 +131,6 @@ export const Toast = ({ message, type = 'success', onClose }) => (
     </AnimatePresence>
 );
 
-// --- Skeleton Loader ---
 export const Skeleton = ({ height = '20px', width = '100%', style }) => (
     <div className="skeleton-loader" style={{ height, width, ...style }}></div>
 );

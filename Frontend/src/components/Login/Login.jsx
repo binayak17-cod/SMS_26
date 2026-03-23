@@ -84,8 +84,9 @@ export default function Login() {
       );
 
       if (loginResponse.data.success) {
-        const { dashboard, id: userId } = loginResponse.data;
+        const { dashboard, id: userId, role } = loginResponse.data;
         localStorage.setItem('userId', userId);
+        localStorage.setItem('userRole', role);
         window.location.href = dashboard;
       } else {
         setError(loginResponse.data.message || "Login failed");

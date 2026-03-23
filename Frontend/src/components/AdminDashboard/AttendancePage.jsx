@@ -4,25 +4,34 @@ import { Card, Table, Button, Input, Select, Badge, Toast } from './AdminCompone
 const AttendancePage = () => {
     const [filterClass, setFilterClass] = useState('');
     const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [filterSubject, setFilterSubject] = useState('');
+    const [filterSessionType, setFilterSessionType] = useState('Theory');
     const [editingRow, setEditingRow] = useState(null);
-    const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [students, setStudents] = useState([]);
     const [attendanceData, setAttendanceData] = useState([]);
     const [editFormData, setEditFormData] = useState({});
     const [loading, setLoading] = useState(false);
     const [classes, setClasses] = useState([]);
-
+    const [subjects, setSubjects] = useState([]);
 
     useEffect(() => {
         fetchStudents();
     }, []);
 
+   
     useEffect(() => {
         if (filterClass) {
+            fetchSubjectsForClass(filterClass);
+        }
+    }, [filterClass]);
+
+
+    useEffect(() => {
+        if (filterClass && filterSubject && filterSessionType && filterDate) {
             fetchAttendance();
         }
-    }, [filterClass, filterDate]);
+    }, [filterClass, filterDate, filterSubject, filterSessionType]);
 
     const fetchStudents = async () => {
         try {
@@ -31,13 +40,11 @@ const AttendancePage = () => {
             const studentsList = data.users || [];
             setStudents(studentsList);
 
-
             const uniqueClasses = [...new Set(
                 studentsList.map(s => `${s.department}${s.sec}`)
             )].sort();
 
             setClasses(uniqueClasses);
-
 
             if (!filterClass && uniqueClasses.length > 0) {
                 setFilterClass(uniqueClasses[0]);
@@ -48,11 +55,48 @@ const AttendancePage = () => {
         }
     };
 
+    const fetchSubjectsForClass = async (className) => {
+        try {
+            
+            const classStudents = students.filter(
+                s => `${s.department}${s.sec}` === className
+            );
+
+            if (classStudents.length > 0) {
+                const firstStudent = classStudents[0];
+                const res = await fetch(
+                    `http://localhost:5000/api/student/subjects?studentId=${firstStudent.id}`
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    const subjectsList = (data.subjects || []).map(s => ({
+                        subject: s.subject,
+                        session_type: s.session_type
+                    }));
+                    setSubjects(subjectsList);
+
+                    
+                    if (subjectsList.length > 0 && !filterSubject) {
+                        setFilterSubject(subjectsList[0].subject);
+                        setFilterSessionType(subjectsList[0].session_type);
+                    }
+                    return;
+                }
+            }
+
+            setSubjects([]);
+        } catch (err) {
+            console.error('Error fetching subjects:', err);
+            setSubjects([]);
+        }
+    };
+
     const fetchAttendance = async () => {
+        if (!filterClass || !filterSubject || !filterSessionType) return;
         setLoading(true);
         try {
             const res = await fetch(
-                `http://localhost:5000/api/attendance?class=${filterClass}&date=${filterDate}`
+                `http://localhost:5000/api/attendance?class=${filterClass}&date=${filterDate}&subject=${encodeURIComponent(filterSubject)}&session_type=${encodeURIComponent(filterSessionType)}`
             );
 
             if (!res.ok) {
@@ -61,8 +105,8 @@ const AttendancePage = () => {
 
             const data = await res.json();
 
-            // If no attendance records exist, create initial records from students
             if (!data.attendance || data.attendance.length === 0) {
+          
                 const initialRecords = students
                     .filter(s => `${s.department}${s.sec}` === filterClass)
                     .map(s => ({
@@ -78,7 +122,7 @@ const AttendancePage = () => {
             }
         } catch (err) {
             console.error('Error fetching attendance:', err);
-            // Show students list even if fetch fails
+         
             const initialRecords = students
                 .filter(s => `${s.department}${s.sec}` === filterClass)
                 .map(s => ({
@@ -115,8 +159,10 @@ const AttendancePage = () => {
                     studentId: editFormData.id,
                     date: filterDate,
                     class: filterClass,
+                    subject: filterSubject,
+                    session_type: filterSessionType,
                     status: editFormData.status,
-                   
+                    remarks: editFormData.remarks || ''
                 })
             });
 
@@ -127,11 +173,50 @@ const AttendancePage = () => {
                 setEditingRow(null);
                 showToastMessage('Attendance updated successfully');
             } else {
-                showToastMessage('Error updating attendance');
+                const errData = await res.json();
+                showToastMessage(errData.error || 'Error updating attendance');
             }
         } catch (err) {
             console.error('Error saving attendance:', err);
             showToastMessage('Error saving attendance');
+        }
+    };
+
+    const handleMarkAll = async (status) => {
+        setLoading(true);
+        try {
+            const promises = attendanceData.map(record =>
+                fetch('http://localhost:5000/api/attendance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: record.id,
+                        date: filterDate,
+                        class: filterClass,
+                        subject: filterSubject,
+                        session_type: filterSessionType,
+                        status: status,
+                        remarks: ''
+                    })
+                })
+            );
+
+            const results = await Promise.all(promises);
+            const allOk = results.every(r => r.ok);
+
+            if (allOk) {
+                setAttendanceData(prev =>
+                    prev.map(item => ({ ...item, status }))
+                );
+                showToastMessage(`All students marked as ${status}`);
+            } else {
+                showToastMessage('Some records failed to update');
+            }
+        } catch (err) {
+            console.error('Error marking all:', err);
+            showToastMessage('Error updating attendance');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -141,19 +226,55 @@ const AttendancePage = () => {
 
     const showToastMessage = (message) => {
         setToastMessage(message);
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
+        setTimeout(() => setToastMessage(''), 3000);
+    };
+
+
+    const uniqueSubjects = [...new Map(
+        subjects.map(s => [`${s.subject}_${s.session_type}`, s])
+    ).values()];
+
+    const handleSubjectChange = (e) => {
+        const value = e.target.value;
+        setFilterSubject(value);
+
+        const match = subjects.find(s => s.subject === value);
+        if (match) {
+            setFilterSessionType(match.session_type);
+        }
     };
 
     return (
         <div className="attendance-page">
             <Card title="Attendance Management">
-                <div className="filters-bar" style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                <div className="filters-bar" style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                     <Select
                         label="Class"
                         value={filterClass}
                         onChange={(e) => setFilterClass(e.target.value)}
                         options={classes.map(cls => ({ value: cls, label: cls }))}
+                    />
+                    <Select
+                        label="Subject"
+                        value={filterSubject}
+                        onChange={handleSubjectChange}
+                        options={
+                            uniqueSubjects.length > 0
+                                ? uniqueSubjects.map(s => ({
+                                    value: s.subject,
+                                    label: `${s.subject} (${s.session_type})`
+                                }))
+                                : [{ value: '', label: 'No subjects found' }]
+                        }
+                    />
+                    <Select
+                        label="Session Type"
+                        value={filterSessionType}
+                        onChange={(e) => setFilterSessionType(e.target.value)}
+                        options={[
+                            { value: 'Theory', label: 'Theory' },
+                            { value: 'Lab', label: 'Lab' }
+                        ]}
                     />
                     <Input
                         label="Date"
@@ -163,8 +284,23 @@ const AttendancePage = () => {
                     />
                 </div>
 
+                {attendanceData.length > 0 && !loading && (
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                        <Button variant="primary" onClick={() => handleMarkAll('Present')}>
+                            Mark All Present
+                        </Button>
+                        <Button variant="ghost" onClick={() => handleMarkAll('Absent')}>
+                            Mark All Absent
+                        </Button>
+                    </div>
+                )}
+
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>Loading...</div>
+                ) : !filterSubject ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                        Please select a class and subject to view attendance
+                    </div>
                 ) : attendanceData.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px' }}>No students found for this class</div>
                 ) : (
@@ -183,23 +319,21 @@ const AttendancePage = () => {
                                         >
                                             <option value="Present">Present</option>
                                             <option value="Absent">Absent</option>
-                            
                                         </select>
                                     ) : (
                                         <Badge type={
                                             record.status === 'Present' ? 'success' :
-                                                record.status === 'Absent' 
+                                            record.status === 'Absent' ? 'danger' : 'warning'
                                         }>
                                             {record.status}
                                         </Badge>
                                     )}
                                 </td>
-                               
                                 <td>
                                     {editingRow === record.id ? (
                                         <div style={{ display: 'flex', gap: '8px' }}>
-                                            <Button bg-grey bg-radius="8px" variant="ghost" onClick={handleSave} style={{ padding: '4px 8px', background: "#fff" }}>Save</Button>
-                                            <Button variant='ghost' onClick={handleCancel} style={{ padding: '4px 6px' }}>X</Button>
+                                            <Button variant="primary" onClick={handleSave} style={{ padding: '4px 12px' }}>Save</Button>
+                                            <Button variant="ghost" onClick={handleCancel} style={{ padding: '4px 8px' }}>Cancel</Button>
                                         </div>
                                     ) : (
                                         <Button variant="ghost" onClick={() => handleEditClick(record)} className="btn-icon">Edit</Button>
@@ -213,7 +347,7 @@ const AttendancePage = () => {
 
             <Toast
                 message={toastMessage}
-                onClose={() => setShowToast(false)}
+                onClose={() => setToastMessage('')}
             />
         </div>
     );

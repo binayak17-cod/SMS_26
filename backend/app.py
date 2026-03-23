@@ -489,7 +489,7 @@ def get_student_subjects():
         user, student_info = student
         class_name = f"{student_info.department}{student_info.sec}"
 
-        # Build query for teacher assignments matching this student's section
+   
         query = db.session.query(
             TeacherAssignment, User
         ).join(
@@ -506,7 +506,7 @@ def get_student_subjects():
 
         assignments = query.order_by(TeacherAssignment.subject).all()
 
-        # Get available semesters for this section
+        
         all_semesters = db.session.query(
             db.distinct(TeacherAssignment.semester)
         ).filter(
@@ -575,7 +575,7 @@ def create_teacher_assignment():
         if not all([teacher_id, section, subject, session_type]):
             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
         
-        # Normalize semester format
+        
         sem_str = str(semester)
         if not sem_str.startswith('Sem'):
             sem_str = f'Sem {sem_str}'

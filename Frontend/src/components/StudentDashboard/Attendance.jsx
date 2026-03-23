@@ -3,63 +3,86 @@ import { motion } from 'framer-motion'
 import StudentLayout from './StudentLayout'
 
 const Attendance = () => {
-  const [attendanceStats, setAttendanceStats] = useState(null)
   const [attendanceRecords, setAttendanceRecords] = useState([])
-  const [subjectsStats, setSubjectsStats] = useState([])
+  const [assignedSubjects, setAssignedSubjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [studentName, setStudentName] = useState('Student')
 
   useEffect(() => {
     const studentId = localStorage.getItem('userId')
     if (studentId) {
-      fetchAttendance(studentId)
+      fetchData(studentId)
     } else {
       setLoading(false)
     }
   }, [])
 
-  const fetchAttendance = async (id) => {
+  const fetchData = async (id) => {
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:5000/api/student/attendance?studentId=${id}`)
-      if (!res.ok) throw new Error('Failed to fetch attendance')
-      const data = await res.json()
+      const [attendanceRes, subjectsRes] = await Promise.all([
+        fetch(`http://localhost:5000/api/student/attendance?studentId=${id}`),
+        fetch(`http://localhost:5000/api/student/subjects?studentId=${id}`)
+      ])
 
-      if (data.success) {
-        setAttendanceStats(data.statistics)
-        setAttendanceRecords(data.attendance || [])
-        setSubjectsStats(data.subjects_stats || [])
-        if (data.student?.name) {
-          setStudentName(data.student.name)
+      if (attendanceRes.ok) {
+        const data = await attendanceRes.json()
+        if (data.success) {
+          setAttendanceRecords(data.attendance || [])
+          if (data.student?.name) {
+            setStudentName(data.student.name)
+          }
+        }
+      }
+
+      if (subjectsRes.ok) {
+        const data = await subjectsRes.json()
+        if (data.success) {
+          setAssignedSubjects(data.subjects || [])
         }
       }
     } catch (err) {
-      console.error('Error fetching attendance:', err)
+      console.error('Error fetching data:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  const getAttendanceColor = (percentage) => {
-    if (percentage >= 90) return '#10b981'
-    if (percentage >= 75) return '#3b82f6'
-    if (percentage >= 60) return '#f59e0b'
-    return '#ef4444'
-  }
-
-  const getColName = (record) => {
-    const subj = record.subject && record.subject.trim() ? record.subject.trim() : record.session_type
-    const suffix = record.session_type === 'Theory' ? 'T' : 'L'
-    return `${subj}-${suffix}`
+  const getColKey = (subject, sessionType) => {
+    const suffix = sessionType === 'Theory' ? 'T' : 'L'
+    return `${subject}-${suffix}`
   }
 
   const getSubjectColumns = () => {
-    if (!attendanceRecords || attendanceRecords.length === 0) return []
-    const cols = new Set()
-    attendanceRecords.forEach(record => {
-      cols.add(getColName(record))
-    })
-    return Array.from(cols).sort()
+    if (assignedSubjects.length > 0) {
+      const seen = new Set()
+      return assignedSubjects
+        .map(s => ({
+          key: getColKey(s.subject, s.session_type),
+          label: s.subject,
+          sessionType: s.session_type
+        }))
+        .filter(c => {
+          if (seen.has(c.key)) return false
+          seen.add(c.key)
+          return true
+        })
+        .sort((a, b) => a.label.localeCompare(b.label))
+    }
+
+    if (attendanceRecords.length > 0) {
+      const colMap = new Map()
+      attendanceRecords.forEach(record => {
+        const subj = record.subject && record.subject.trim() ? record.subject.trim() : record.session_type
+        const key = getColKey(subj, record.session_type)
+        if (!colMap.has(key)) {
+          colMap.set(key, { key, label: subj, sessionType: record.session_type })
+        }
+      })
+      return Array.from(colMap.values()).sort((a, b) => a.label.localeCompare(b.label))
+    }
+
+    return []
   }
 
   const getDayWiseData = () => {
@@ -69,7 +92,15 @@ const Attendance = () => {
       if (!datesMap[record.date]) {
         datesMap[record.date] = {}
       }
-      datesMap[record.date][getColName(record)] = record.status
+      const subj = record.subject && record.subject.trim() ? record.subject.trim() : record.session_type
+      const key = getColKey(subj, record.session_type)
+      if (!datesMap[record.date][key]) {
+        datesMap[record.date][key] = { present: 0, total: 0 }
+      }
+      datesMap[record.date][key].total += 1
+      if (record.status === 'Present') {
+        datesMap[record.date][key].present += 1
+      }
     })
 
     return Object.keys(datesMap).sort((a, b) => new Date(b) - new Date(a)).map(date => ({
@@ -77,6 +108,9 @@ const Attendance = () => {
       ...datesMap[date]
     }))
   }
+
+  const columns = getSubjectColumns()
+  const dayWiseData = getDayWiseData()
 
   return (
     <StudentLayout studentName={studentName}>
@@ -102,44 +136,58 @@ const Attendance = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', background: 'white' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '700', color: '#1f2937', borderBottom: '2px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>Attendance Date</th>
-                  {getSubjectColumns().map(col => (
-                    <th key={col} style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '700', color: '#1f2937', borderBottom: '2px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
-                      {col.toUpperCase()}
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '700', color: '#1f2937', borderBottom: '2px solid #e2e8f0', borderRight: '1px solid #e2e8f0', position: 'sticky', left: 0, background: '#f8fafc', zIndex: 1 }}>
+                    Attendance Date
+                  </th>
+                  {columns.map(col => (
+                    <th key={col.key} style={{ padding: '10px 12px', textAlign: 'center', fontWeight: '700', color: '#1f2937', borderBottom: '2px solid #e2e8f0', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                      <div>{col.label}</div>
+                      <div style={{ fontSize: '10px', fontWeight: '500', color: '#6b7280', marginTop: '2px' }}>
+                        ({col.sessionType})
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {getDayWiseData().map((row, idx) => (
+                {dayWiseData.map((row, idx) => (
                   <tr key={row.date} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                    <td style={{ padding: '10px 12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', color: '#4b5563' }}>
+                    <td style={{ padding: '10px 12px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', color: '#4b5563', position: 'sticky', left: 0, background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', zIndex: 1, whiteSpace: 'nowrap' }}>
                       {new Date(row.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')}
                     </td>
-                    {getSubjectColumns().map(col => {
-                      const status = row[col]
-                      let cellText = 'NC'
+                    {columns.map(col => {
+                      const cell = row[col.key]
+                      let cellText = '-'
                       let cellBg = 'transparent'
+                      let cellColor = '#9ca3af'
 
-                      if (status === 'Present') {
-                        cellText = '1/1'
-                        cellBg = '#bfdbfe'
-                      } else if (status === 'Absent') {
-                        cellText = '0/1'
-                        cellBg = '#fca5a5'
-                      } else if (status === 'Late') {
-                        cellText = '0.5/1'
-                        cellBg = '#fef08a'
+                      if (cell && cell.total > 0) {
+                        cellText = `${cell.present}/${cell.total}`
+                        if (cell.present === cell.total) {
+                          
+                          cellBg = '#d1fae5'
+                          cellColor = '#059669'
+                        } else if (cell.present === 0) {
+                          
+                          cellBg = '#fee2e2'
+                          cellColor = '#dc2626'
+                        } else {
+                       
+                          cellBg = '#fef3c7'
+                          cellColor = '#d97706'
+                        }
                       }
 
                       return (
-                        <td key={col} style={{
+                        <td key={col.key} style={{
                           padding: '10px 12px',
                           borderBottom: '1px solid #e2e8f0',
                           borderRight: '1px solid #e2e8f0',
                           background: cellBg,
-                          color: cellText !== 'NC' ? '#1f2937' : '#9ca3af',
-                          textAlign: 'center'
+                          color: cellColor,
+                          textAlign: 'center',
+                          fontWeight: cell ? '700' : '400',
+                          fontSize: '14px'
                         }}>
                           {cellText}
                         </td>
@@ -147,9 +195,9 @@ const Attendance = () => {
                     })}
                   </tr>
                 ))}
-                {getDayWiseData().length === 0 && (
+                {dayWiseData.length === 0 && (
                   <tr>
-                    <td colSpan={getSubjectColumns().length + 1} style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+                    <td colSpan={columns.length + 1} style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
                       No attendance records found yet.
                     </td>
                   </tr>
@@ -157,6 +205,9 @@ const Attendance = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Legend */}
+         
         </div>
       </motion.div>
     </StudentLayout>
