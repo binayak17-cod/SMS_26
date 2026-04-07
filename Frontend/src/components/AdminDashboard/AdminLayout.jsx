@@ -3,6 +3,22 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import './AdminLayout.css';
+import {
+  LayoutDashboard,
+  ClipboardCheck,
+  Users,
+  FileText,
+  Bell,
+  User,
+  LogOut,
+  Menu,
+  ChevronRight,
+  IdCard,
+  BarChart3,
+  Settings,
+  Link2
+} from 'lucide-react'
+
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -52,14 +68,14 @@ const AdminLayout = ({ children }) => {
     };
 
     const menuItems = [
-        { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
-        { name: 'Users', path: '/admin/users', icon: '👥' },
-        { name: 'Attendance', path: '/admin/attendance', icon: '📅' },
-        { name: 'Marks/Grades', path: '/admin/marks', icon: '📝' },
-        { name: 'ID Creation', path: '/admin/id-creation', icon: '🆔' },
-        { name: 'Batch Assignment', path: '/admin/batch-assignment', icon: '🔑' },
-        { name: 'Analytics', path: '/admin/analytics', icon: '📈' },
-        { name: 'Settings', path: '/admin/settings', icon: '⚙️' },
+        { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+        { name: 'Users', path: '/admin/users', icon: Users },
+        { name: 'Attendance', path: '/admin/attendance', icon: ClipboardCheck },
+        { name: 'Marks/Grades', path: '/admin/marks', icon: FileText },
+        { name: 'ID Creation', path: '/admin/id-creation', icon: IdCard },
+        { name: 'Batch Assignment', path: '/admin/batch-assignment', icon: Link2 },
+
+        { name: 'Settings', path: '/admin/settings', icon: Settings },
     ];
 
     const getInitial = (name) => name ? name.charAt(0).toUpperCase() : 'A';
@@ -98,7 +114,7 @@ const AdminLayout = ({ children }) => {
                                 `nav-item ${isActive ? 'active' : ''}`
                             }
                         >
-                            <span className="nav-icon" title={item.name}>{item.icon}</span>
+                            <span className="nav-icon" title={item.name}><item.icon size={20} /></span>
                             <AnimatePresence>
                                 {sidebarOpen && (
                                     <motion.span

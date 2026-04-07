@@ -1,43 +1,80 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-
+import { Users, GraduationCap, BookOpen } from 'lucide-react'
+import axios from 'axios'
 import '../../App.css'
 
-const StatCard = ({ title, value, icon, color }) => {
-  const colorGradients = {
-    purple: 'linear-gradient(135deg, #a855f7, #9333ea)',
-    pink: 'linear-gradient(135deg, #ec4899, #db2777)',
-    blue: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-    orange: 'linear-gradient(135deg, #f97316, #ea580c)'
-  }
-
+const StatCard = ({ title, value, icon: Icon, accent, bgTint }) => {
   return (
     <motion.div
-      className="stat-card"
-      whileHover={{ translateY: -5 }}
+      whileHover={{ translateY: -3 }}
+      style={{
+        background: 'white',
+        borderRadius: '16px',
+        padding: '22px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+        border: '1px solid #f0f0f0',
+        cursor: 'default',
+        transition: 'box-shadow 0.2s ease',
+      }}
     >
-      <div
-        className={`stat-icon`}
-        style={{ background: colorGradients[color] || color, color: 'white', borderRadius: '12px' }}
-      >
-        {icon}
+      <div style={{
+        width: '46px',
+        height: '46px',
+        borderRadius: '12px',
+        background: bgTint,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <Icon size={22} color={accent} strokeWidth={2} />
       </div>
-      <div className="stat-body">
-        <div className="stat-title">{title}</div>
-        <div className="stat-value">{value}</div>
+      <div>
+        <div style={{ fontSize: '13px', color: '#8993a4', fontWeight: 500, letterSpacing: '0.01em' }}>{title}</div>
+        <div style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b', marginTop: '2px', lineHeight: 1.2 }}>{value}</div>
       </div>
     </motion.div>
   )
 }
 
 export default function DashboardPage() {
-  const [currentDate, setCurrentDate] = React.useState(new Date())
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [totalStudents, setTotalStudents] = useState('--')
+  const [totalTeachers, setTotalTeachers] = useState('--')
+  const [assignedCourses, setAssignedCourses] = useState('--')
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(new Date())
-    }, 60000) // Update every minute
+    }, 60000)
     return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:5000/api/dashboard/stats')
+      .then(res => {
+        if (res.data.success) {
+          setTotalStudents(res.data.totalStudents)
+          setTotalTeachers(res.data.totalTeachers)
+        }
+      })
+      .catch(err => console.error('Error fetching stats:', err))
+
+    const teacherId = localStorage.getItem('userId')
+    if (teacherId) {
+      axios.get(`http://127.0.0.1:5000/api/teacher-assignments/${teacherId}`)
+        .then(res => {
+          if (res.data.success) {
+            const uniqueSubjects = new Set(res.data.assignments.map(a => a.subject))
+            setAssignedCourses(String(uniqueSubjects.size))
+          }
+        })
+        .catch(err => console.error('Error fetching assignments:', err))
+    }
   }, [])
 
   const currentMonth = currentDate.getMonth()
@@ -47,26 +84,15 @@ export default function DashboardPage() {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-  // Get the first day of the month and number of days
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay()
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
 
-  // Format current time
-  const hours = String(currentDate.getHours()).padStart(2, '0')
+  const hours = String(currentDate.getHours() % 12 || 12).padStart(2, '0')
   const minutes = String(currentDate.getMinutes()).padStart(2, '0')
   const ampm = currentDate.getHours() >= 12 ? 'PM' : 'AM'
   const formattedTime = `${hours}:${minutes} ${ampm}`
-  const dayNameToday = dayNames[currentDate.getDay()]
-
-  const studentsData = [
-    { name: 'Glenn Maxwell', score: '80/100', submitted: '12/10/22 10 PM', grade: 'Excellent', status: 'Pass' },
-    { name: 'Cathe Heuavn', score: '70/100', submitted: '12/10/22 10 PM', grade: 'Average', status: 'Pass' },
-    { name: 'Yeodar Gil', score: '35/100', submitted: '12/10/22 10 PM', grade: 'Poor', status: 'Fail' },
-    { name: 'Preeth Shing', score: '80/100', submitted: '12/10/22 10 PM', grade: 'Excellent', status: 'Pass' }
-  ]
 
   return (
-
     <motion.div
       className="dashboard-content"
       initial={{ opacity: 0 }}
@@ -76,19 +102,16 @@ export default function DashboardPage() {
       {/* Left Main Column */}
       <div className="left-main-col">
 
-        {/* Stats Grid */}
         <div className="stats-grid">
-          <StatCard title="Total Students" value="1,220" icon="👥" color="purple" />
-          <StatCard title="Total Teachers" value="120" icon="👨‍🏫" color="pink" />
-          <StatCard title="Total Courses" value="15" icon="📚" color="blue" />
-          <StatCard title="Faculty Rooms" value="100" icon="🏢" color="orange" />
+          <StatCard title="Total Students" value={totalStudents} icon={Users} accent="#4f46e5" bgTint="#eef2ff" />
+          <StatCard title="Total Teachers" value={totalTeachers} icon={Users} accent="#0891b2" bgTint="#ecfeff" />
+          <StatCard title="Assigned Courses" value={assignedCourses} icon={GraduationCap} accent="#c2410c" bgTint="#fff7ed" />
         </div>
 
         {/* Middle Section: Statistics & Course Progress */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
           <div className="card-section" style={{ height: '300px', marginBottom: 0 }}>
             <div className="section-title">Statistics</div>
-            {/* Placeholder for chart */}
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a3aed0' }}>
               Chart Placeholder
             </div>
@@ -115,41 +138,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Database Table */}
-        <div className="card-section">
-          <div className="section-header">
-            <div className="section-title">Database</div>
-          </div>
-          <table className="styled-table">
-            <thead>
-              <tr>
-                <th>Student name</th>
-                <th>Score</th>
-                <th>Submitted</th>
-                <th>Grade</th>
-                <th>Pass/Fail</th>
-              </tr>
-            </thead>
-            <tbody>
-              {studentsData.map((student, idx) => (
-                <tr key={idx}>
-                  <td><div style={{ fontWeight: '700' }}>{student.name}</div></td>
-                  <td>{student.score}</td>
-                  <td>{student.submitted}</td>
-                  <td>{student.grade}</td>
-                  <td>
-                    <span className="status-badge" style={{
-                      background: student.status === 'Pass' ? '#E6F8F1' : '#FFF0F0',
-                      color: student.status === 'Pass' ? '#0CA678' : '#E03131'
-                    }}>
-                      {student.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
 
       {/* Right Panel Column */}
@@ -166,9 +154,8 @@ export default function DashboardPage() {
               <div key={d} style={{ fontSize: '12px', color: '#a3aed0', textAlign: 'center', width: '30px' }}>{d}</div>
             ))}
           </div>
-          {/* Simple Grid Calendar Simulation */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', marginTop: '10px' }}>
-            {[...Array(firstDayOfMonth).keys()].map(i => <div key={`e-${i}`}></div>)} {/* Empty slots */}
+            {[...Array(firstDayOfMonth).keys()].map(i => <div key={`e-${i}`}></div>)}
             {[...Array(daysInMonth).keys()].map(i => {
               const day = i + 1;
               const isToday = day === currentDay;
@@ -234,6 +221,5 @@ export default function DashboardPage() {
 
       </div>
     </motion.div>
-
   )
 }

@@ -163,27 +163,7 @@ export const LandingPage = () => {
             </motion.div>
 
             {/* Social Proof */}
-            <motion.div
-              variants={fadeUpVariant}
-              custom={5}
-              initial="hidden"
-              animate="visible"
-              className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-            >
-              <div className="flex -space-x-3">
-                {[
-                  '1', '5', '8', '12'
-                ].map((img, i) => (
-                  <img key={i} className="w-12 h-12 rounded-full border-4 border-[#F8FAFC] shadow-sm z-10 hover:z-20 hover:scale-110 transition-transform" src={`https://i.pravatar.cc/100?img=${img}`} alt="User avatar" />
-                ))}
-              </div>
-              <div className="text-center sm:text-left">
-                <div className="flex items-center justify-center sm:justify-start gap-1 gap-1.5 text-amber-400 mb-1">
-                  {[1, 2, 3, 4, 5].map((i) => <Star key={i} className="w-5 h-5 fill-current" />)}
-                </div>
-
-              </div>
-            </motion.div>
+        
           </div>
         </div>
 
@@ -196,7 +176,7 @@ export const LandingPage = () => {
         >
           <div className="rounded-[2.5rem] border border-white/40 bg-white/40 backdrop-blur-2xl p-4 shadow-[0_20px_80px_-20px_rgba(37,99,235,0.2)] transform-gpu">
             <div className="rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-inner aspect-[16/9] relative flex flex-col">
-              {/* Fake Browser Top Bar */}
+              {/* Fake Browser Top Bar*/}
               <div className="h-12 border-b border-gray-100 bg-gray-50/50 flex items-center px-4 gap-2">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400"></div>

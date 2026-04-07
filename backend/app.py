@@ -1,6 +1,8 @@
 import os
+import pickle
 import random
 import string
+import numpy as np
 from flask import Flask, session, request, jsonify
 from flask_cors import CORS
 from flask_wtf.csrf import generate_csrf
@@ -9,6 +11,7 @@ from config import Config
 from models import db, User, Student, Teacher, Attendance, TeacherAssignment, Result
 from forms import LoginForm
 from datetime import datetime
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -191,6 +194,7 @@ def login():
         "success": True,
         "message": "Login successful",
         "id": id,
+        "name": user.name,
         "role": user.role,
         "dashboard": '/admin' if user.role == 'admin' else '/student' if user.role == 'student' else '/teacher' 
     }), 200
@@ -686,7 +690,7 @@ def create_result():
 @app.route('/api/results/<student_id>', methods=['GET'])
 def get_student_results(student_id):
     try:
-        # Optional query params for filtering
+      
         semester = request.args.get('semester')
         exam_type = request.args.get('exam_type')
 
@@ -729,5 +733,106 @@ def logout():
     return jsonify({"success": True})
 
 
-if __name__ == "__main__":
+model = pickle.load(open(os.path.join(os.path.dirname(__file__), 'model', 'student.pkl'), 'rb'))
+teacher_model = pickle.load(open(os.path.join(os.path.dirname(__file__), 'model', 'teacher.pkl'), 'rb'))
+
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.json
+        raw = data['features']
+
+        import pandas as pd
+
+        sem = int(raw[0])
+        year_map = {1: '1st Year', 2: '1st Year', 3: '2nd Year', 4: '2nd Year',
+                    5: '3rd Year', 6: '3rd Year', 7: '3rd Year', 8: '3rd Year'}
+        grade_level = year_map.get(sem, '3rd Year')
+
+        columns = [
+            'grade_level',
+            'study_hours_per_day',
+            'last_exam_score',
+            'attendance_percentage',
+            'sleep_hours',
+            'social_media_hours',
+            'concept_understanding_score'
+        ]
+        row = [grade_level] + [float(v) for v in raw[1:]]
+        df = pd.DataFrame([row], columns=columns)
+        for col in columns[1:]:
+            df[col] = df[col].astype(float)
+
+        prediction = int(model.predict(df)[0])
+
+        label_map = {0: "High", 1: "Low", 2: "Medium"}
+        feedback_map = {
+            0: "Excellent work! Your habits and scores indicate strong academic performance. Keep it up!",
+            1: "Your metrics suggest you may need extra support. Prioritize study time, improve attendance, and seek help from faculty.",
+            2: "You're on a stable path. Consider increasing study hours or improving concept clarity to push into the high bracket."
+        }
+
+        category = label_map.get(prediction, "Medium")
+        feedback = feedback_map.get(prediction, "")
+
+        return jsonify({
+            "prediction": category,
+            "category": category,
+            "feedback": feedback
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/predict1', methods=['POST'])
+def predict1():
+    try:
+        data = request.json
+        raw = data['features']
+
+        import pandas as pd
+
+
+        columns = [
+            'Attendance (%)',
+            'Internal Test 1 (out of 40)',
+            'Internal Test 2 (out of 40)',
+            'Assignment Score (out of 10)',
+            'Daily Study Hours'
+        ]
+        row = [float(v) for v in raw]
+        df = pd.DataFrame([row], columns=columns)
+        for col in columns[1:]:
+            df[col] = df[col].astype(float)
+
+
+        prediction = int(teacher_model.predict(df)[0])
+
+        label_map = {0: 'High', 1: "Low", 2: "Medium"}
+        feedback_map = {
+            0: "Excellent work! Your habits and scores indicate strong academic performance. Keep it up!",
+            1: "Your metrics suggest you may need extra support. Prioritize study time, improve attendance, and seek help from faculty.",
+            2: "You're on a stable path. Consider increasing study hours or improving concept clarity to push into the high bracket."
+        }
+
+        category = label_map.get(prediction, "Medium")
+        feedback = feedback_map.get(prediction, "")
+
+        return jsonify({
+            "prediction": category,
+            "category": category,
+            "feedback": feedback
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+if __name__ == '__main__':
     app.run(debug=True)

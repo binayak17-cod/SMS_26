@@ -18,16 +18,17 @@ import {
 const TeacherLayout = ({ children }) => {
   const location = useLocation()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const teacherName = 'Jara Khan'
+  const teacherName = localStorage.getItem('userName') || 'Teacher'
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/teacher/dashboard' },
     { name: 'Attendance', icon: ClipboardCheck, path: '/teacher/attendance' },
     { name: 'Students', icon: Users, path: '/teacher/students' },
     { name: 'Result', icon: FileText, path: '/teacher/result' },
+    { name: 'performance', icon: Sparkles, path: '/teacher/Performancepred'}
   ]
 
-  // Determine active item based on current URL path
+
   const activeItem = menuItems.find(item => location.pathname.includes(item.path.split('/').pop())) || menuItems[0]
 
   return (
@@ -125,15 +126,8 @@ const TeacherLayout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-4 md:gap-6">
-            {/* Search Bar - hidden on very small screens */}
-            <div className="hidden lg:flex items-center relative group">
-              <Search className="absolute left-3 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-slate-100/80 text-slate-700 text-sm rounded-full pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white border border-transparent focus:border-indigo-100 w-64 transition-all shadow-inner"
-              />
-            </div>
+      
+            
 
             <motion.button
               whileHover={{ scale: 1.05 }}

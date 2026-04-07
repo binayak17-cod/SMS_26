@@ -15,6 +15,7 @@ import {
   Library
 } from 'lucide-react';
 import StudentLayout from './StudentLayout';
+import axios from 'axios';
 
 const Performance = () => {
   const [formData, setFormData] = useState({
@@ -38,18 +39,35 @@ const Performance = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setReport({
-        score: "88%",
-        status: "Excellent",
-        feedback: "Based on your inputs, your study-to-sleep ratio places you in the top percentile of students. Keep maintaining this healthy balance for optimal academic outcomes."
+    try{
+      const response = await axios.post("http://127.0.0.1:5000/predict", {
+        features: [
+          Number(formData.semester),
+          Number(formData.studyHours),
+          Number(formData.lastExamScore),
+          Number(formData.attendance),
+          Number(formData.sleepHours),
+          Number(formData.socialMediaHours),
+          Number(formData.conceptUnderstanding),
+        ]
       });
-    }, 1200);
+      const result = response.data
+      
+      setReport({
+        category: result.category || result.prediction,
+        feedback: result.feedback || "Prediction complete"
+      });
+    }
+    catch(error) {
+      console.log(error);
+      alert("Error connecting to backend")
+    }
+    setLoading(false);
   };
+
 
   const containerVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -98,9 +116,13 @@ const Performance = () => {
             </div>
             
             {report && (
-              <motion.div variants={itemVariants} className="hidden lg:flex items-center space-x-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium border border-green-200">
+              <motion.div variants={itemVariants} className={`hidden lg:flex items-center space-x-2 px-4 py-2 rounded-lg font-medium border ${
+                report.category === 'High' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                report.category === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                'bg-red-50 text-red-700 border-red-200'
+              }`}>
                 <Target className="w-5 h-5" />
-                <span>On Track: {report.score}</span>
+                <span>Performance: {report.category}</span>
               </motion.div>
             )}
           </div>
@@ -174,10 +196,19 @@ const Performance = () => {
                       animate={{ opacity: 1, y: 0 }}
                       className="text-center"
                     >
-                      <div className="mx-auto w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-5 border-[6px] border-white shadow-sm">
-                        <span className="text-2xl font-bold text-blue-700">{report.score}</span>
+                      <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-5 border-[6px] border-white shadow-sm ${
+                        report.category === 'High' ? 'bg-emerald-100' : 
+                        report.category === 'Medium' ? 'bg-amber-100' : 'bg-red-100'
+                      }`}>
+                        <span className={`text-lg font-bold ${
+                          report.category === 'High' ? 'text-emerald-700' : 
+                          report.category === 'Medium' ? 'text-amber-700' : 'text-red-700'
+                        }`}>{report.category}</span>
                       </div>
-                      <h3 className="text-xl font-bold text-slate-800 mb-2">{report.status} Trajectory</h3>
+                      <h3 className="text-xl font-bold text-slate-800 mb-2">
+                        {report.category === 'High' ? 'High Performance' : 
+                         report.category === 'Medium' ? 'Medium Performance' : 'Low Performance'}
+                      </h3>
                       <p className="text-slate-600 leading-relaxed text-sm mb-6">
                         {report.feedback}
                       </p>
