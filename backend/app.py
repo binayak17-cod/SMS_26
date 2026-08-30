@@ -76,6 +76,7 @@ def create_user():
         role = data.get('role')
         department = data.get('department')
         sec = data.get('sec')
+        semester = data.get('semester')
 
         if not all([user_id, name, email, password, role]):
             return jsonify({"success": False, "message": "Missing required fields"}), 400
@@ -89,14 +90,15 @@ def create_user():
         db.session.flush()  # Flush to make the user available for foreign key reference
         
         if role == "student":
-            if not department or not sec:
+            if not department or not sec or not semester:
                 db.session.rollback()
-                return jsonify({"success": False, "message": "Department and Section required for students"}), 400
+                return jsonify({"success": False, "message": "Department, Section, and Semester required for students"}), 400
 
             student = Student(
                 id=user_id,
                 department=department,
-                sec=sec
+                sec=sec,
+                semester=semester
             )
             db.session.add(student)
 
@@ -208,7 +210,7 @@ def get_users():
         
         if role == 'student':
             students = db.session.query(User, Student).join(Student, User.id == Student.id).filter(User.role == 'student').all()
-            users_list = [{"id": u.id, "name": u.name, "email": u.email, "role": u.role, "department": s.department, "sec": s.sec} for u, s in students]
+            users_list = [{"id": u.id, "name": u.name, "email": u.email, "role": u.role, "department": s.department, "sec": s.sec, "semester": s.semester} for u, s in students]
         elif role == 'teacher':
             teachers = db.session.query(User, Teacher).join(Teacher, User.id == Teacher.id).filter(User.role == 'teacher').all()
             users_list = [{"id": u.id, "name": u.name, "email": u.email, "role": u.role, "department": t.department} for u, t in teachers]
@@ -286,6 +288,7 @@ def get_attendance():
         date_str = request.args.get('date')
         session_type = request.args.get('session_type')
         subject = request.args.get('subject')
+        semester = request.args.get('semester')
 
         if not all([class_name, date_str, session_type, subject]):
             return jsonify({'error': 'Class, date, subject and session_type are required'}), 400
@@ -296,7 +299,8 @@ def get_attendance():
             User.id,
             User.name,
             Student.department,
-            Student.sec
+            Student.sec,
+            Student.semester
         ).join(
             Student, User.id == Student.id
         ).filter(
@@ -304,9 +308,9 @@ def get_attendance():
         ).all()
 
         filtered_students = []
-        for user_id, name, department, sec in students_query:
+        for user_id, name, department, sec, sem in students_query:
             constructed_class = f"{department}{sec}" if sec else department
-            if constructed_class == class_name:
+            if constructed_class == class_name and (not semester or sem == semester):
                 filtered_students.append((user_id, name))
 
         attendance_list = []
@@ -574,9 +578,9 @@ def create_teacher_assignment():
         section = data.get('section')
         subject = data.get('subject')
         session_type = data.get('session_type')
-        semester = data.get('semester', 'Sem 6')
+        semester = data.get('semester')
         
-        if not all([teacher_id, section, subject, session_type]):
+        if not all([teacher_id, section, subject, session_type, semester]):
             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
         
         

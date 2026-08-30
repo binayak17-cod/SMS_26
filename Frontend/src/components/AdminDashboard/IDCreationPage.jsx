@@ -10,6 +10,7 @@ const IDCreationPage = () => {
         id: '',
         class: '',
         department: '',
+        semester:'',
         sec: '',
         password: ''
     });
@@ -109,6 +110,7 @@ const IDCreationPage = () => {
                                     name="department"
                                     value={formData.department}
                                     onChange={handleChange}
+                                    required
                                     options={[
                                         { value: '', label: 'Select Department' },
                                         { value: 'CSE', label: 'CSE' },
@@ -126,11 +128,31 @@ const IDCreationPage = () => {
                                     name="sec"
                                     value={formData.sec}
                                     onChange={handleChange}
+                                    required
                                     options={[
                                         { value: '', label: 'Select Section' },
                                         { value: 'A', label: 'A' },
                                         { value: 'B', label: 'B' },
                                         { value: 'C', label: 'C' },
+                                    ]}
+                                    
+                                />
+                                <Select
+                                    label="Semester"
+                                    name="semester"
+                                    value={formData.semester}
+                                    onChange={handleChange}
+                                    required
+                                    options={[
+                                        { value: '', label: 'Select Semester' },
+                                        { value: 'Sem 1', label: 'Sem 1' },
+                                        { value: 'Sem 2', label: 'Sem 2' },
+                                        { value: 'Sem 3', label: 'Sem 3' },
+                                        { value: 'Sem 4', label: 'Sem 4' },
+                                        { value: 'Sem 5', label: 'Sem 5' },
+                                        { value: 'Sem 6', label: 'Sem 6' },
+                                        { value: 'Sem 7', label: 'Sem 7' },
+                                        { value: 'Sem 8', label: 'Sem 8' },
                                     ]}
                                 />
                             </>

@@ -109,9 +109,9 @@ const MarksPage = () => {
         if (!filterClass || !filterSubject || !filterSemester || !filterExam) return;
         setLoading(true);
         try {
-            // Get students in this class
+            // Get students in this class and semester
             const classStudents = students.filter(
-                s => `${s.department}${s.sec}` === filterClass
+                s => `${s.department}${s.sec}` === filterClass && s.semester === filterSemester
             );
 
             // Fetch results for each student

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 const AttendancePage = () => {
   const [view, setView] = useState('list')
   const [selectedClass, setSelectedClass] = useState('')
+  const [selectedSemester, setSelectedSemester] = useState('')
   const [selectedSubject, setSelectedSubject] = useState('')
   const [sessionType, setSessionType] = useState('Theory')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -26,7 +27,8 @@ const AttendancePage = () => {
         setAssignedClasses(data.assignments.map(a => ({
           section: a.section,
           subject: a.subject,
-          type: a.session_type
+          type: a.session_type,
+          semester: a.semester
         })))
       }
     } catch (err) {
@@ -34,8 +36,9 @@ const AttendancePage = () => {
     }
   }
 
-  const handleUpdateClick = (section, subject, type) => {
+  const handleUpdateClick = (section, subject, type, semester) => {
     setSelectedClass(section)
+    setSelectedSemester(semester)
     setSelectedSubject(subject)
     setSessionType(type)
     setView('update')
@@ -44,6 +47,7 @@ const AttendancePage = () => {
   const handleBackToList = () => {
     setView('list')
     setSelectedClass('')
+    setSelectedSemester('')
     setSelectedSubject('')
     setStudents([])
     setAttendance({})
@@ -53,7 +57,7 @@ const AttendancePage = () => {
     setLoading(true)
     try {
       const res = await fetch(
-        `http://localhost:5000/api/attendance?class=${selectedClass}&date=${date}&session_type=${sessionType}&subject=${encodeURIComponent(selectedSubject)}`
+        `http://localhost:5000/api/attendance?class=${selectedClass}&semester=${encodeURIComponent(selectedSemester)}&date=${date}&session_type=${sessionType}&subject=${encodeURIComponent(selectedSubject)}`
       )
       const data = await res.json()
 
@@ -138,6 +142,7 @@ const AttendancePage = () => {
                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#2b3674' }}>Section</th>
                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#2b3674' }}>Subject</th>
                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#2b3674' }}>Type</th>
+                <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#2b3674' }}>Semester</th>
                 <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#2b3674' }}>Action</th>
               </tr>
             </thead>
@@ -158,9 +163,10 @@ const AttendancePage = () => {
                       {cls.type}
                     </span>
                   </td>
+                  <td style={{ padding: '12px', color: '#2b3674' }}>{cls.semester}</td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
                     <button
-                      onClick={() => handleUpdateClick(cls.section, cls.subject, cls.type)}
+                      onClick={() => handleUpdateClick(cls.section, cls.subject, cls.type, cls.semester)}
                       style={{
                         padding: '8px 20px',
                         background: '#4318ff',
@@ -209,7 +215,7 @@ const AttendancePage = () => {
         <div>
           <h3 style={{ color: '#2b3674', margin: 0 }}>Update Attendance</h3>
           <p style={{ color: '#a3aed0', margin: '5px 0 0 0', fontSize: '14px' }}>
-            {selectedSubject} - {selectedClass} ({sessionType})
+            {selectedSubject} - {selectedClass} ({selectedSemester}) - {sessionType}
           </p>
         </div>
       </div>

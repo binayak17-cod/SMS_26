@@ -3,6 +3,7 @@ import { Card, Table, Button, Input, Select, Badge, Toast } from './AdminCompone
 
 const AttendancePage = () => {
     const [filterClass, setFilterClass] = useState('');
+    const [filterSemester, setFilterSemester] = useState('');
     const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
     const [filterSubject, setFilterSubject] = useState('');
     const [filterSessionType, setFilterSessionType] = useState('Theory');
@@ -14,6 +15,7 @@ const AttendancePage = () => {
     const [loading, setLoading] = useState(false);
     const [classes, setClasses] = useState([]);
     const [subjects, setSubjects] = useState([]);
+    const [semesters, setSemesters] = useState([]);
 
     useEffect(() => {
         fetchStudents();
@@ -28,10 +30,10 @@ const AttendancePage = () => {
 
 
     useEffect(() => {
-        if (filterClass && filterSubject && filterSessionType && filterDate) {
+        if (filterClass && filterSemester && filterSubject && filterSessionType && filterDate) {
             fetchAttendance();
         }
-    }, [filterClass, filterDate, filterSubject, filterSessionType]);
+    }, [filterClass, filterSemester, filterDate, filterSubject, filterSessionType]);
 
     const fetchStudents = async () => {
         try {
@@ -73,12 +75,22 @@ const AttendancePage = () => {
                         subject: s.subject,
                         session_type: s.session_type
                     }));
-                    setSubjects(subjectsList);
-
                     
-                    if (subjectsList.length > 0 && !filterSubject) {
-                        setFilterSubject(subjectsList[0].subject);
-                        setFilterSessionType(subjectsList[0].session_type);
+                    const uniqueSubjects = [...new Map(
+                        subjectsList.map(s => [s.subject, s])
+                    ).values()];
+                    
+                    setSubjects(uniqueSubjects);
+
+                    const semsList = data.semesters || [];
+                    setSemesters(semsList);
+                    if (semsList.length > 0 && !filterSemester) {
+                        setFilterSemester(semsList[0]);
+                    }
+
+                    if (uniqueSubjects.length > 0 && !filterSubject) {
+                        setFilterSubject(uniqueSubjects[0].subject);
+                        setFilterSessionType(uniqueSubjects[0].session_type);
                     }
                     return;
                 }
@@ -92,11 +104,11 @@ const AttendancePage = () => {
     };
 
     const fetchAttendance = async () => {
-        if (!filterClass || !filterSubject || !filterSessionType) return;
+        if (!filterClass || !filterSemester || !filterSubject || !filterSessionType) return;
         setLoading(true);
         try {
             const res = await fetch(
-                `http://localhost:5000/api/attendance?class=${filterClass}&date=${filterDate}&subject=${encodeURIComponent(filterSubject)}&session_type=${encodeURIComponent(filterSessionType)}`
+                `http://localhost:5000/api/attendance?class=${filterClass}&semester=${encodeURIComponent(filterSemester)}&date=${filterDate}&subject=${encodeURIComponent(filterSubject)}&session_type=${encodeURIComponent(filterSessionType)}`
             );
 
             if (!res.ok) {
@@ -108,7 +120,7 @@ const AttendancePage = () => {
             if (!data.attendance || data.attendance.length === 0) {
           
                 const initialRecords = students
-                    .filter(s => `${s.department}${s.sec}` === filterClass)
+                    .filter(s => `${s.department}${s.sec}` === filterClass && s.semester === filterSemester)
                     .map(s => ({
                         id: s.id,
                         roll: s.id,
@@ -124,7 +136,7 @@ const AttendancePage = () => {
             console.error('Error fetching attendance:', err);
          
             const initialRecords = students
-                .filter(s => `${s.department}${s.sec}` === filterClass)
+                .filter(s => `${s.department}${s.sec}` === filterClass && s.semester === filterSemester)
                 .map(s => ({
                     id: s.id,
                     roll: s.id,
@@ -253,6 +265,16 @@ const AttendancePage = () => {
                         value={filterClass}
                         onChange={(e) => setFilterClass(e.target.value)}
                         options={classes.map(cls => ({ value: cls, label: cls }))}
+                    />
+                    <Select
+                        label="Semester"
+                        value={filterSemester}
+                        onChange={(e) => setFilterSemester(e.target.value)}
+                        options={
+                            semesters.length > 0
+                                ? semesters.map(sem => ({ value: sem, label: sem }))
+                                : [{ value: '', label: 'No semesters' }]
+                        }
                     />
                     <Select
                         label="Subject"

@@ -46,6 +46,14 @@ export default function DashboardPage() {
   const [totalStudents, setTotalStudents] = useState('--')
   const [totalTeachers, setTotalTeachers] = useState('--')
   const [assignedCourses, setAssignedCourses] = useState('--')
+  const [teacherAssignments, setTeacherAssignments] = useState([])
+  
+  const getInitialDay = () => {
+    const day = new Date().getDay()
+    const days = ['Mon', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Fri']
+    return days[day]
+  }
+  const [activeDay, setActiveDay] = useState(getInitialDay())
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -71,6 +79,7 @@ export default function DashboardPage() {
           if (res.data.success) {
             const uniqueSubjects = new Set(res.data.assignments.map(a => a.subject))
             setAssignedCourses(String(uniqueSubjects.size))
+            setTeacherAssignments(res.data.assignments)
           }
         })
         .catch(err => console.error('Error fetching assignments:', err))
@@ -117,24 +126,88 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="card-section" style={{ height: '300px', marginBottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="section-title" style={{ alignSelf: 'flex-start', marginBottom: 'auto' }}>Course Progress</div>
-            <div style={{
-              width: '150px',
-              height: '150px',
-              borderRadius: '50%',
-              background: 'conic-gradient(#4318ff 0% 75%, #f4f7fe 75% 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative'
-            }}>
-              <div style={{ background: 'white', width: '110px', height: '110px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: '#2b3674' }}>75%</span>
-              </div>
+          <div className="card-section" style={{ height: '300px', marginBottom: 0, display: 'flex', flexDirection: 'column' }}>
+            <div className="section-title" style={{ marginBottom: '15px' }}>Daily Classes</div>
+            
+            {/* Days of Week Selector */}
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '15px', paddingBottom: '4px' }}>
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => (
+                <button
+                  key={day}
+                  onClick={() => setActiveDay(day)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 0',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: activeDay === day ? '#4318ff' : '#f4f7fe',
+                    color: activeDay === day ? 'white' : '#2b3674',
+                    fontWeight: activeDay === day ? '700' : '600',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {day}
+                </button>
+              ))}
             </div>
-            <p style={{ marginTop: '20px', color: '#a3aed0', fontSize: '14px' }}>Completion Rate</p>
-            <div style={{ marginTop: 'auto' }}></div>
+
+            {/* Classes List */}
+            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '5px' }}>
+               {(() => {
+                  const dayIndex = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].indexOf(activeDay)
+                  // Create a pseudo-random list of classes for the day based on assignments
+                  const todaysClasses = teacherAssignments.filter((_, idx) => (idx + dayIndex) % 2 === 0 || idx % 4 === dayIndex % 4)
+                  
+                  if (todaysClasses.length === 0) {
+                    return <div style={{ color: '#a3aed0', fontSize: '14px', textAlign: 'center', marginTop: '30px' }}>No classes scheduled</div>
+                  }
+
+                  return todaysClasses.map((a, i) => {
+                     const hour = 9 + (i * 2) + Math.abs(dayIndex - 2); // Mock varied timings
+                     const timeLabel = hour > 12 ? `${hour-12}:00 PM` : `${hour}:00 AM`
+                     return (
+                       <motion.div
+                         key={i}
+                         initial={{ opacity: 0, y: 10 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         transition={{ delay: 0.05 * i }}
+                         style={{ 
+                           display: 'flex', 
+                           gap: '15px', 
+                           padding: '14px', 
+                           marginBottom: '10px', 
+                           background: '#fff', 
+                           border: '1px solid #f0f0f0',
+                           boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                           borderRadius: '12px' 
+                         }}
+                       >
+                         <div style={{ borderRight: '2px solid #f4f7fe', paddingRight: '15px', minWidth: '70px' }}>
+                           <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>{timeLabel}</div>
+                           <div style={{ 
+                             fontSize: '11px', 
+                             color: a.session_type === 'Lab' ? '#0CA678' : '#4318ff', 
+                             background: a.session_type === 'Lab' ? '#E6F8F1' : '#eef2ff',
+                             padding: '2px 6px',
+                             borderRadius: '4px',
+                             display: 'inline-block',
+                             marginTop: '6px',
+                             fontWeight: '600'
+                           }}>
+                             {a.session_type}
+                           </div>
+                         </div>
+                         <div>
+                           <div style={{ fontWeight: '700', color: '#2b3674', fontSize: '14px', marginBottom: '4px' }}>{a.subject}</div>
+                           <div style={{ fontSize: '12px', color: '#a3aed0', fontWeight: '500' }}>{a.semester} • Sec {a.section}</div>
+                         </div>
+                       </motion.div>
+                     )
+                  })
+               })()}
+            </div>
           </div>
         </div>
 

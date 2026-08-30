@@ -8,7 +8,8 @@ const BatchAssignmentPage = () => {
     teacher_id: '',
     section: '',
     subject: '',
-    session_type: 'Theory'
+    session_type: 'Theory',
+    semester: ''
   })
 
   useEffect(() => {
@@ -54,7 +55,7 @@ const BatchAssignmentPage = () => {
       const data = await res.json()
       if (data.success) {
         alert('Assignment created successfully')
-        setFormData({ teacher_id: '', section: '', subject: '', session_type: 'Theory' })
+        setFormData({ teacher_id: '', section: '', subject: '', session_type: 'Theory', semester: '' })
       } else {
         alert('Error: ' + data.message)
       }
@@ -128,6 +129,35 @@ const BatchAssignmentPage = () => {
               {sections.map(section => (
                 <option key={section} value={section}>{section}</option>
               ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', color: '#2b3674', fontWeight: '600' }}>
+              Semester
+            </label>
+            <select
+              value={formData.semester}
+              onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px',
+                fontSize: '14px',
+                outline: 'none'
+              }}
+            >
+              <option value="">Select Semester</option>
+              <option value="Sem 1">Sem 1</option>
+              <option value="Sem 2">Sem 2</option>
+              <option value="Sem 3">Sem 3</option>
+              <option value="Sem 4">Sem 4</option>
+              <option value="Sem 5">Sem 5</option>
+              <option value="Sem 6">Sem 6</option>
+              <option value="Sem 7">Sem 7</option>
+              <option value="Sem 8">Sem 8</option>
             </select>
           </div>
 

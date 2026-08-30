@@ -29,28 +29,26 @@ const ResultPage = () => {
     }
   }, [])
 
-  // Derive unique sections from assignments
+  // Derive unique semesters from assignments
   useEffect(() => {
-    const uniqueSections = [...new Set(assignments.map(a => a.section))].sort()
-    setSections(uniqueSections)
-    if (uniqueSections.length > 0 && !selectedSection) {
-      setSelectedSection(uniqueSections[0])
+    const uniqueSemesters = [...new Set(assignments.map(a => a.semester))].sort()
+    setSemesters(uniqueSemesters)
+    if (uniqueSemesters.length > 0 && !selectedSemester) {
+      setSelectedSemester(uniqueSemesters[0])
     }
   }, [assignments])
 
-  // When section changes, derive semesters for that section
+  // When semester changes, derive sections for that semester
   useEffect(() => {
-    if (!selectedSection) return
-    const sems = [...new Set(
-      assignments.filter(a => a.section === selectedSection).map(a => a.semester)
+    if (!selectedSemester) return
+    const secs = [...new Set(
+      assignments.filter(a => a.semester === selectedSemester).map(a => a.section)
     )].sort()
-    setSemesters(sems)
-    if (sems.length > 0 && !sems.includes(selectedSemester)) {
-      setSelectedSemester(sems[0])
+    setSections(secs)
+    if (secs.length > 0 && !secs.includes(selectedSection)) {
+      setSelectedSection(secs[0])
     }
-    // Also fetch students for this section
-    fetchStudentsForSection(selectedSection)
-  }, [selectedSection])
+  }, [selectedSemester, assignments])
 
   // When section or semester changes, derive subjects
   useEffect(() => {
@@ -63,7 +61,10 @@ const ResultPage = () => {
     if (uniqueSubs.length > 0 && !uniqueSubs.includes(selectedSubject)) {
       setSelectedSubject(uniqueSubs[0])
     }
-  }, [selectedSection, selectedSemester])
+    
+    // Also fetch students for this section and semester
+    fetchStudents(selectedSection, selectedSemester)
+  }, [selectedSection, selectedSemester, assignments])
 
   const fetchAssignments = async (id) => {
     try {
@@ -77,14 +78,14 @@ const ResultPage = () => {
     }
   }
 
-  const fetchStudentsForSection = async (section) => {
+  const fetchStudents = async (section, semester) => {
     try {
       const res = await fetch('http://localhost:5000/api/users?role=student')
       if (res.ok) {
         const data = await res.json()
         const allStudents = data.users || []
         const filtered = allStudents.filter(
-          s => `${s.department}${s.sec}` === section
+          s => `${s.department}${s.sec}` === section && s.semester === semester
         )
         setStudents(filtered)
         setSelectedStudentId('')
@@ -185,37 +186,40 @@ const ResultPage = () => {
       <div className="card-section" style={{ maxWidth: '650px' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* Row 1: Section & Semester */}
+          {/* Row 1: Semester & Section */}
           <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Section</label>
-              <select
-                value={selectedSection}
-                onChange={(e) => {
-                  setSelectedSection(e.target.value)
-                  setSelectedStudentId('')
-                }}
-                required
-                style={inputStyle}
-              >
-                <option value="">Select Section</option>
-                {sections.map(sec => (
-                  <option key={sec} value={sec}>{sec}</option>
-                ))}
-              </select>
-            </div>
-
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>Semester</label>
               <select
                 value={selectedSemester}
-                onChange={(e) => setSelectedSemester(e.target.value)}
+                onChange={(e) => {
+                  setSelectedSemester(e.target.value)
+                  // Student will visually reset because the useEffect fetches students and resets selectedStudentId
+                }}
                 required
                 style={inputStyle}
               >
                 <option value="">Select Semester</option>
                 {semesters.map(sem => (
                   <option key={sem} value={sem}>{sem}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Section</label>
+              <select
+                value={selectedSection}
+                onChange={(e) => {
+                  setSelectedSection(e.target.value)
+                }}
+                required
+                disabled={!selectedSemester}
+                style={{ ...inputStyle, opacity: !selectedSemester ? 0.6 : 1 }}
+              >
+                <option value="">Select Section</option>
+                {sections.map(sec => (
+                  <option key={sec} value={sec}>{sec}</option>
                 ))}
               </select>
             </div>
